@@ -16,15 +16,17 @@ the data of the three current systems (guarantee, warehouse, attendance).
 ## Start in 3 commands
 
 ```bash
-make secrets      # creates .env with random secrets
+DEV=1 make env    # .env for local testing (mock payment, http, free ports)
 make up           # builds and starts database + API + web   → http://127.0.0.1:8090
-make logs         # shows the first administrator login
+make health
 ```
 
 Production server (Ubuntu/Debian), with HTTPS and nightly backups:
 
 ```bash
 DOMAIN=shop.evinki.com LETSENCRYPT_EMAIL=you@evinki.com ZARINPAL_MERCHANT_ID=xxxx ./scripts/bootstrap-vps.sh
+# or from your PC, building here and pushing over SSH (with one-command rollback):
+make deploy-remote HOST=root@SERVER DOMAIN=shop.evinki.com LETSENCRYPT_EMAIL=you@evinki.com
 ```
 
 Details: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Run `make help` for every command.

@@ -1,0 +1,35 @@
+# Host nginx vhost for Evinki (rendered by scripts/deploy-host-nginx.sh with envsubst).
+# Variables: SERVER_NAMES, CERT_NAME, APP_HTTP_PORT. Only this project's file is written, so other
+# sites on the same server are never touched.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${SERVER_NAMES};
+    location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; default_type "text/plain"; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${SERVER_NAMES};
+
+    ssl_certificate     /etc/letsencrypt/live/${CERT_NAME}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${CERT_NAME}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:evinki_ssl:10m;
+    ssl_session_timeout 1d;
+
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    client_max_body_size 12m;
+
+    location / {
+        proxy_pass http://127.0.0.1:${APP_HTTP_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_read_timeout 90s;
+    }
+}

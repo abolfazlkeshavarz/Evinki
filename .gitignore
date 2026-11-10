@@ -1,6 +1,8 @@
 .env
+.env.bak-*
 backups/
-node_modules/
+legacy/
 dist/
+node_modules/
 *.exe
 uploads/
