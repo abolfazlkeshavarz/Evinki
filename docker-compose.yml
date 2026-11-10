@@ -42,6 +42,8 @@ services:
       SMS_PASSWORD: ${SMS_PASSWORD:-}
       LEGACY_DEVICE_KEY_SECRET: ${LEGACY_DEVICE_KEY_SECRET:-}
     volumes: [uploads:/data/uploads]
+    # lets importers reach a database on this host as host.docker.internal
+    extra_hosts: ["host.docker.internal:host-gateway"]
 
   web:
     image: evinki-web:latest

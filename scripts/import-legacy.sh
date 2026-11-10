@@ -9,4 +9,4 @@ KIND="${1:-}"; shift || true
 [ -n "$KIND" ] || die "usage: import-legacy.sh <warehouse|guarantee|attendance> -src <db> [-dry-run]"
 mkdir -p legacy
 ./scripts/backup.sh >/dev/null && say "safety backup taken"
-$COMPOSE run --rm --no-deps -T -v "$ROOT/legacy:/legacy:ro" --add-host=host.docker.internal:host-gateway api evinkictl import "$KIND" "$@"
+$COMPOSE run --rm --no-deps -T -v "$ROOT/legacy:/legacy:ro" api evinkictl import "$KIND" "$@"
