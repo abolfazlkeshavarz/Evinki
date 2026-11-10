@@ -34,7 +34,7 @@ export function Price({ price, onRequest, compare, big }: { price: number; onReq
 }
 
 function Thumb({ src, name, className }: { src?: string; name: string; className?: string }) {
-  return src ? <img src={src} alt={name} loading="lazy" className={clsx('h-full w-full object-cover', className)} />
+  return src ? <img src={src} alt={name} loading="lazy" className={clsx('h-full w-full bg-white object-contain', className)} />
     : <div className="grid h-full w-full place-items-center bg-gradient-to-br from-brand-tint to-muted"><img src="/logo-evinki.png" alt="" className="h-1/3 opacity-40 grayscale" /></div>
 }
 
@@ -76,7 +76,7 @@ export function ProductCard({ p, compact }: { p: any; compact?: boolean }) {
       <Link to={`/products/${p.slug}`} className="block aspect-square overflow-hidden bg-muted"><Thumb src={p.images?.[0]} name={p.name} className="transition duration-300 group-hover:scale-105" /></Link>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <Link to={`/products/${p.slug}`} className="line-clamp-2 min-h-[2.6rem] text-sm font-semibold leading-snug group-hover:text-brand">{p.name}</Link>
-        <div className="flex items-center gap-1 text-[11px] text-ok"><ShieldCheck className="h-3.5 w-3.5" />گارانتی {fa(p.guarantee_months ?? 18)} ماهه</div>
+        {p.guarantee_months > 0 ? <div className="flex items-center gap-1 text-[11px] text-ok"><ShieldCheck className="h-3.5 w-3.5" />گارانتی {fa(p.guarantee_months)} ماهه</div> : <div className="text-[11px] text-soft">{p.category_name}</div>}
         <div className="mt-auto flex items-end justify-between gap-2 pt-1">
           {orderable && p.in_stock ? <button className="btn-soft btn-sm !min-h-[34px] !px-2.5" aria-label="افزودن به سبد" onClick={() => add({ product_id: p.id })}><Plus className="h-4 w-4" /></button> : <span />}
           {!p.in_stock && orderable ? <span className="text-xs font-bold text-soft">ناموجود</span> : <Price price={p.price} onRequest={p.price_on_request} compare={p.compare_price} />}
@@ -98,7 +98,7 @@ function Row({ title, to, children }: { title: string; to?: string; children: Re
 const slides = [
   { t: 'قدرتی که خانه را متحول می‌کند', s: 'جاروبرقی FZ530 Performance — موتور ۲۴۰۰ وات، فیلتر HEPA13 قابل شستشو', cta: 'مشاهده محصول', to: '/products/fz530-performance', bg: 'from-brand to-brand-dark' },
   { t: 'گارانتی ۱۸ ماهه + ۳ ماه طلایی', s: 'کد گارانتی را ثبت کنید و پشتیبانی سراسری را فعال کنید', cta: 'ثبت گارانتی', to: '/guarantee', bg: 'from-brand-dark to-brand' },
-  { t: 'لوازم جانبی اوینکی', s: 'فیلتر هپا، خرطومی، چرخ و ملزومات مصرفی اصل', cta: 'خرید لوازم جانبی', to: '/accessories', bg: 'from-brand to-brand-dark' },
+  { t: 'لوازم جانبی اوینکی', s: 'فیلتر هپا، خرطومی، چرخ و ملزومات مصرفی اصل', cta: 'خرید لوازم جانبی', to: '/products?category=accessories', bg: 'from-brand to-brand-dark' },
 ]
 
 function Hero() {
@@ -129,13 +129,13 @@ export function Home() {
   const cats = useGet<any[]>('/shop/categories')
   const news = useGet<any>('/shop/products?limit=10')
   const deals = useGet<any>('/shop/products?limit=10&priced=1&sort=price_asc')
-  const parts = useGet<any[]>('/shop/parts?limit=10')
+  const acc = useGet<any>('/shop/products?category=accessories&limit=12')
   return (
     <div className="space-y-10">
       <Hero />
       {!!cats.data?.length && (
         <section><div className="grid grid-cols-4 gap-3 md:grid-cols-8">
-          {[...cats.data.map((c) => ({ k: c.id, to: `/products?category=${c.slug}`, l: c.name })), { k: 'acc', to: '/accessories', l: 'لوازم جانبی' }, { k: 'g', to: '/guarantee', l: 'استعلام گارانتی' }, { k: 'tech', to: '/technician/apply', l: 'همکاری تکنسین' }].map((c) => (
+          {[...cats.data.map((c) => ({ k: c.id, to: `/products?category=${c.slug}`, l: c.name })), { k: 'g', to: '/guarantee', l: 'استعلام گارانتی' }, { k: 'tech', to: '/technician/apply', l: 'همکاری تکنسین' }].map((c) => (
             <Link key={c.k} to={c.to} className="group flex flex-col items-center gap-2 text-center">
               <span className="grid h-16 w-16 place-items-center rounded-full bg-brand-tint text-brand transition group-hover:scale-105 group-hover:bg-brand group-hover:text-brand-ink md:h-20 md:w-20">{c.k === 'g' ? <BadgeCheck className="h-8 w-8" /> : c.k === 'tech' ? <Wrench className="h-8 w-8" /> : <Package className="h-8 w-8" />}</span>
               <span className="text-xs font-semibold md:text-sm">{c.l}</span>
@@ -147,11 +147,7 @@ export function Home() {
         <Row title="جدیدترین محصولات" to="/products">{news.data.items.map((p: any) => <ProductCard key={p.id} p={p} compact />)}</Row>
       ) : <Empty title="هنوز محصولی منتشر نشده است" />}
       {!!deals.data?.items?.length && <Row title="محصولات قابل خرید آنلاین" to="/products?priced=1">{deals.data.items.map((p: any) => <ProductCard key={p.id} p={p} compact />)}</Row>}
-      {!!parts.data?.length && (
-        <Row title="لوازم جانبی و یدکی" to="/accessories">{parts.data.map((p) => (
-          <Card key={p.id} className="w-44 shrink-0 snap-start overflow-hidden sm:w-56"><div className="aspect-square bg-muted"><Thumb src={p.image} name={p.name} /></div><div className="p-3"><div className="line-clamp-2 min-h-[2.4rem] text-sm font-semibold">{p.name}</div><div className="mt-2 text-end text-base font-extrabold num">{fa(p.price)} <span className="text-xs text-soft">تومان</span></div></div></Card>
-        ))}</Row>
-      )}
+      {!!acc.data?.items?.length && <Row title="لوازم جانبی و یدکی" to="/products?category=accessories">{acc.data.items.map((p: any) => <ProductCard key={p.id} p={p} compact />)}</Row>}
       <section className="overflow-hidden rounded-3xl border border-brand/15 bg-brand-tint p-6 md:flex md:items-center md:justify-between md:p-10">
         <div><h2 className="flex items-center gap-2 text-xl font-extrabold"><ShieldCheck className="h-6 w-6 text-brand" />گارانتی دستگاه خود را بررسی کنید</h2><p className="mt-1 text-sm text-soft">کد گارانتی روی دستگاه یا کارت گارانتی درج شده است.</p></div>
         <form className="mt-4 flex gap-2 md:mt-0 md:w-96" onSubmit={(e) => { e.preventDefault(); nav('/guarantee?code=' + encodeURIComponent(code)) }}>
@@ -266,7 +262,7 @@ export function ProductPage() {
         <div>
           <Card className="relative aspect-square overflow-hidden"><Thumb src={imgs[img]} name={p.name} />
             <div className="absolute left-3 top-3 flex flex-col gap-2"><WishHeart id={p.id} /><button aria-label="اشتراک‌گذاری" className="grid h-9 w-9 place-items-center rounded-full bg-surface/90 shadow" onClick={async () => { try { if (navigator.share) await navigator.share({ title: p.name, url: location.href }); else { await navigator.clipboard.writeText(location.href); toast.ok('پیوند کپی شد') } } catch { /* cancelled */ } }}><Share2 className="h-5 w-5 text-soft" /></button></div></Card>
-          {imgs.length > 1 && <div className="mt-3 flex gap-2 overflow-x-auto">{imgs.map((s: string, i: number) => <button key={s} onClick={() => setImg(i)} className={clsx('h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2', i === img ? 'border-brand' : 'border-transparent')}><img src={s} alt="" className="h-full w-full object-cover" /></button>)}</div>}
+          {imgs.length > 1 && <div className="mt-3 flex gap-2 overflow-x-auto">{imgs.map((s: string, i: number) => <button key={s} onClick={() => setImg(i)} className={clsx('h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2', i === img ? 'border-brand' : 'border-transparent')}><img src={s} alt="" className="h-full w-full bg-white object-contain" /></button>)}</div>}
         </div>
         <div className="space-y-4">
           <div><h1 className="text-xl font-extrabold leading-9 md:text-2xl">{p.name}</h1>{p.name_en && <div className="text-sm text-soft" dir="ltr">{p.name_en}</div>}</div>
@@ -275,7 +271,7 @@ export function ProductPage() {
         </div>
         <aside className="card h-fit space-y-4 p-5 lg:sticky lg:top-36">
           <div className="space-y-2.5 text-sm">
-            <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-ok" /><span>گارانتی {fa(p.guarantee_months)} ماهه اوینکی{p.golden_months > 0 && <b className="text-warn"> + {fa(p.golden_months)} ماه طلایی</b>}</span></div>
+            <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-ok" /><span>{p.guarantee_months > 0 ? <>گارانتی {fa(p.guarantee_months)} ماهه اوینکی{p.golden_months > 0 && <b className="text-warn"> + {fa(p.golden_months)} ماه طلایی</b>}</> : "گارانتی شرکتی اوینکی"}</span></div>
             <div className="flex items-center gap-2"><Truck className="h-5 w-5 text-soft" /><span>ارسال به سراسر کشور با کد رهگیری</span></div>
             <div className="flex items-center gap-2"><Wrench className="h-5 w-5 text-soft" /><span>خدمات پس از فروش در شهرهای بزرگ</span></div>
           </div>
@@ -305,7 +301,7 @@ export function ProductPage() {
           {tab === 'specs' && (specs.length ? <div className="divide-y divide-line">{specs.map(([k, v]) => <div key={k} className="grid grid-cols-3 gap-4 py-3 text-sm"><span className="text-soft">{k}</span><span className="col-span-2 font-medium">{String(v)}</span></div>)}</div> : <p className="text-sm text-soft">مشخصاتی ثبت نشده است.</p>)}
           {tab === 'guarantee' && (
             <div className="space-y-3 text-sm leading-8">
-              <p>این محصول دارای <b>{fa(p.guarantee_months)} ماه گارانتی</b> شرکت اوینکی است{p.golden_months > 0 && <> و با فعال‌سازی گارانتی، <b>{fa(p.golden_months)} ماه گارانتی طلایی</b> به آن اضافه می‌شود</>}. تعمیر یا تعویض قطعات معیوب فنی در شرایط استفاده صحیح پوشش داده می‌شود.</p>
+              <p>{p.guarantee_months > 0 ? <>این محصول دارای <b>{fa(p.guarantee_months)} ماه گارانتی</b> شرکت اوینکی است{p.golden_months > 0 && <> و با فعال‌سازی گارانتی، <b>{fa(p.golden_months)} ماه گارانتی طلایی</b> به آن اضافه می‌شود</>}. تعمیر یا تعویض قطعات معیوب فنی در شرایط استفاده صحیح پوشش داده می‌شود.</> : <>تمامی محصولات اوینکی شامل گارانتی شرکتی هستند. برای اطلاعات بیشتر با پشتیبانی تماس بگیرید.</>}</p>
               <p className="text-soft">شامل گارانتی نمی‌شود: آسیب فیزیکی، نصب یا استفاده نادرست، ولتاژ غیرمجاز، بازکردن دستگاه توسط افراد غیرمجاز و پایان مدت گارانتی.</p>
               <Link to="/guarantee" className="btn-soft">ثبت و استعلام گارانتی</Link>
             </div>
@@ -313,7 +309,7 @@ export function ProductPage() {
         </div>
       </Card>
 
-      {!!p.accessories?.length && <Row title="لوازم جانبی این محصول" to="/accessories">{p.accessories.map((a: any) => <AccessoryCard key={a.id} a={a} />)}</Row>}
+      {!!p.accessories?.length && <Row title="لوازم جانبی این محصول" to="/products?category=accessories">{p.accessories.map((a: any) => <AccessoryCard key={a.id} a={a} />)}</Row>}
       {!!p.related?.length && <Row title="محصولات مرتبط">{p.related.map((r: any) => <ProductCard key={r.id} p={r} compact />)}</Row>}
 
       {/* phones: sticky buy bar */}

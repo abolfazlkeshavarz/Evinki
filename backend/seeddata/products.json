@@ -1,0 +1,224 @@
+{
+ "source": "https://evinki.com/product/",
+ "categories": [
+  {
+   "slug": "vacuum-cleaners",
+   "name": "جاروبرقی",
+   "name_en": "Vacuum cleaners",
+   "sort": 1
+  },
+  {
+   "slug": "accessories",
+   "name": "لوازم جانبی",
+   "name_en": "Accessories",
+   "sort": 2
+  }
+ ],
+ "products": [
+  {
+   "slug": "fz530-performance",
+   "sku": "FZ530",
+   "name": "جاروبرقی اوینکی FZ530 Performance",
+   "name_en": "Evinki FZ530 Performance",
+   "category": "vacuum-cleaners",
+   "summary": "جاروبرقی ۲۴۰۰ وات با فیلتر HEPA13 قابل شستشو، کیسه ۴ لیتری XL و نازل کم‌صدا؛ قدرتی که خانه را متحول می‌کند.",
+   "description": "اگر به‌دنبال یک جاروبرقی پرقدرت، کم‌صدا و کم‌مصرف هستید، این مدل با طراحی مدرن و امکانات حرفه‌ای، انتخابی ایده‌آل برای نظافت کامل منزل است. ترکیب قدرت مکش بالا، فیلتر ضدحساسیت و حرکت روان باعث شده این محصول یکی از بهترین گزینه‌ها برای استفاده روزمره باشد.\n\n• قدرت موتور ۲۴۰۰ وات؛ مکش بسیار قوی برای تمیزکاری عمیق انواع سطوح\n• کیسه زباله ۴ لیتری XL؛ ظرفیت بالا برای استفاده طولانی بدون تخلیه مکرر\n• نشانگر پر بودن کیسه؛ اطلاع دقیق از زمان تعویض یا تخلیه\n• فیلتر HEPA13 قابل شستشو؛ جذب ۹۹٪ ذرات ریز تا ۳ میکرون، مناسب افراد حساس و آلرژیک\n• نازل Aeropro Silent کم‌صدا (۵۸ دسی‌بل)\n• مصرف انرژی بهینه (تا ۵۰٪ صرفه‌جویی)\n• چرخ‌های بزرگ و روان\n• شعاع عملکرد ۱۰ متر با کابل بلند\n• خرطومی با چرخش ۳۶۰ درجه؛ انعطاف بالا و مقاوم در برابر پارگی\n• سیستم 360Motion و سیستم 180Access Lid برای دسترسی سریع به مخزن",
+   "images": [
+    "fz530-1.jpg",
+    "fz530-2.jpg",
+    "fz530-3.jpg",
+    "fz530-4.jpg",
+    "fz530-5.jpg",
+    "fz530-6.jpg",
+    "fz530-7.jpg"
+   ],
+   "stock": 2,
+   "guarantee_months": 18,
+   "golden_months": 3,
+   "specs": {
+    "مدل": "FZ530",
+    "توان موتور": "۲۴۰۰ وات",
+    "حجم کیسه": "۴ لیتر (XL)",
+    "فیلتر": "HEPA13 قابل شستشو",
+    "سطح صدا": "۵۸ دسی‌بل (نازل Aeropro Silent)",
+    "شعاع عملکرد": "۱۰ متر",
+    "خرطومی": "چرخش ۳۶۰ درجه",
+    "صرفه‌جویی انرژی": "تا ۵۰٪",
+    "گارانتی": "۱۸ ماه + ۳ ماه گارانتی طلایی"
+   }
+  },
+  {
+   "slug": "hepa-filter",
+   "sku": "EV-015",
+   "name": "فیلتر هپا جاروبرقی",
+   "category": "accessories",
+   "summary": "فیلتر HEPA 13 اوینکی؛ جذب ۹۹٫۹۷٪ ذرات ریز، آلرژن‌ها و گردوغبار، مناسب افراد آلرژیک (مدل EV-015).",
+   "description": "فیلتر HEPA 13 جاروبرقی اوینکی یکی از مهم‌ترین قطعات مصرفی برای حفظ قدرت مکش، افزایش عمر موتور و بهبود کیفیت هوای خروجی جاروبرقی است. این فیلتر قادر است تا ۹۹٫۹۷ درصد از ذرات بسیار ریز، گردوغبار، آلرژن‌ها، گرده گیاهان و موی حیوانات خانگی را جذب کند و از بازگشت آن‌ها به محیط جلوگیری نماید؛ انتخابی مناسب برای افراد مبتلا به آلرژی، آسم یا مشکلات تنفسی.\n\nاین فیلتر از متریال باکیفیت و مقاوم ساخته شده و جریان هوای مناسبی را حفظ می‌کند تا قدرت مکش کاهش پیدا نکند. نصب و تعویض آن بدون ابزار و در مدت کوتاهی انجام می‌شود. استفاده منظم از فیلتر سالم، از ورود گردوغبار به موتور جلوگیری کرده و طول عمر دستگاه را افزایش می‌دهد.",
+   "images": [
+    "hepa-filter-1.png",
+    "hepa-filter-2.jpg",
+    "hepa-filter-3.jpg"
+   ],
+   "part_code": "EV-015",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "crevice-tool",
+   "sku": "EV-019",
+   "name": "گوشه گیر و گوشه پاک کن جاروبرقی",
+   "category": "accessories",
+   "summary": "ابزار نظافت گوشه‌ها، درزها و فضاهای تنگ؛ سازگار با اکثر جاروبرقی‌های خانگی (مدل EV-019).",
+   "description": "گوشه‌گیر و گوشه‌پاک‌کن جاروبرقی اوینکی ابزاری کاربردی برای نظافت نقاطی است که دسترسی به آن‌ها دشوار است. این سری با طراحی باریک و کیفیت ساخت بالا، به‌راحتی گردوغبار را از گوشه‌ها، درزها، لبه مبلمان، پشت وسایل و فضاهای تنگ جمع‌آوری می‌کند. نصب آسان، دوام بالا و سازگاری با اکثر جاروبرقی‌های خانگی.",
+   "images": [
+    "crevice-tool-1.png",
+    "crevice-tool-2.jpg",
+    "crevice-tool-3.jpg",
+    "crevice-tool-4.jpg"
+   ],
+   "part_code": "EV-019",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "simple-hose",
+   "sku": "EV-018",
+   "name": "خرطومی ساده جاروبرقی",
+   "category": "accessories",
+   "summary": "خرطومی ساده جاروبرقی اوینکی (مدل EV-018).",
+   "description": "خرطومی ساده جاروبرقی اوینکی (مدل EV-018).",
+   "images": [
+    "simple-hose-1.jpg"
+   ],
+   "part_code": "EV-018",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "cable",
+   "sku": "EV-017",
+   "name": "کابل جاروبرقی",
+   "category": "accessories",
+   "summary": "کابل جاروبرقی اوینکی (مدل EV-017).",
+   "description": "کابل جاروبرقی اوینکی (مدل EV-017).",
+   "images": [
+    "cable-1.jpg"
+   ],
+   "part_code": "EV-017",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "wheel",
+   "sku": "EV-016",
+   "name": "چرخ جاروبرقی",
+   "category": "accessories",
+   "summary": "چرخ جاروبرقی اوینکی (مدل EV-016).",
+   "description": "چرخ جاروبرقی اوینکی (مدل EV-016).",
+   "images": [
+    "wheel-1.jpg"
+   ],
+   "part_code": "EV-016",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "bag-holder",
+   "sku": "EV-014",
+   "name": "نگه دارنده کیسه",
+   "category": "accessories",
+   "summary": "نگه دارنده کیسه جاروبرقی اوینکی (مدل EV-014).",
+   "description": "نگه دارنده کیسه جاروبرقی اوینکی (مدل EV-014).",
+   "images": [
+    "bag-holder-1.png"
+   ],
+   "part_code": "EV-014",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "cord-reel",
+   "sku": "EV-013",
+   "name": "سیم جمع کن جاروبرقی",
+   "category": "accessories",
+   "summary": "سیم جمع‌کن جاروبرقی اوینکی (مدل EV-013).",
+   "description": "سیم جمع‌کن جاروبرقی اوینکی (مدل EV-013).",
+   "images": [
+    "cord-reel-1.jpg",
+    "cord-reel-2.jpg",
+    "cord-reel-3.jpg"
+   ],
+   "part_code": "EV-013",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "volume-knob",
+   "sku": "EV-011",
+   "name": "ولوم جاروبرقی",
+   "category": "accessories",
+   "summary": "ولوم تنظیم قدرت جاروبرقی اوینکی (مدل EV-011).",
+   "description": "ولوم تنظیم قدرت جاروبرقی اوینکی (مدل EV-011).",
+   "images": [
+    "volume-knob-1.jpg"
+   ],
+   "part_code": "EV-011",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "bag-lock",
+   "sku": "EV-010",
+   "name": "قفل کیسه",
+   "category": "accessories",
+   "summary": "قفل کیسه جاروبرقی اوینکی (مدل EV-010).",
+   "description": "قفل کیسه جاروبرقی اوینکی (مدل EV-010).",
+   "images": [
+    "bag-lock-1.jpg"
+   ],
+   "part_code": "EV-010",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "motor-cover-rubber",
+   "sku": "EV-009",
+   "name": "لاستیک درب موتور",
+   "category": "accessories",
+   "summary": "لاستیک درب موتور جاروبرقی اوینکی (مدل EV-009).",
+   "description": "لاستیک درب موتور جاروبرقی اوینکی (مدل EV-009).",
+   "images": [
+    "motor-cover-rubber-1.jpg"
+   ],
+   "part_code": "EV-009",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  },
+  {
+   "slug": "motor-felt",
+   "sku": "EV-008",
+   "name": "نمد موتور جاروبرقی",
+   "category": "accessories",
+   "summary": "نمد موتور جاروبرقی اوینکی.",
+   "description": "نمد موتور جاروبرقی اوینکی.",
+   "images": [
+    "motor-felt-1.jpg",
+    "motor-felt-2.jpg"
+   ],
+   "part_code": "EV-008",
+   "stock": 0,
+   "guarantee_months": 0,
+   "golden_months": 0
+  }
+ ]
+}

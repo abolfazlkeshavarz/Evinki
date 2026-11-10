@@ -97,9 +97,9 @@ export function ShopLayout() {
   const tab = ({ isActive }: { isActive: boolean }) => clsx('relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold', isActive ? 'text-brand' : 'text-soft')
   return (
     <div className="flex min-h-screen flex-col pb-[calc(58px+env(safe-area-inset-bottom))] md:pb-0">
-      <div className="hidden bg-brand-dark text-white md:block"><div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs">
-        <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" />گارانتی ۱۸ ماهه + ۳ ماه گارانتی طلایی روی همه جاروبرقی‌ها</span>
-        <span className="flex items-center gap-4"><a href="tel:02833362824" className="flex items-center gap-1 num"><Phone className="h-3.5 w-3.5" />۰۲۸-۳۳۳۶۲۸۲۴</a><Link to="/technician/apply" className="hover:underline">همکاری تکنسین</Link></span>
+      <div className="hidden border-b border-line bg-brand-tint text-ink md:block"><div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs">
+        <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-brand" />گارانتی ۱۸ ماهه + ۳ ماه گارانتی طلایی روی همه جاروبرقی‌ها</span>
+        <span className="flex items-center gap-4"><a href="tel:02833362824" className="flex items-center gap-1 num"><Phone className="h-3.5 w-3.5 text-brand" />۰۲۸-۳۳۳۶۲۸۲۴</a><Link to="/technician/apply" className="hover:underline">همکاری تکنسین</Link></span>
       </div></div>
 
       <header className="sticky top-0 z-40 border-b border-line bg-surface">
@@ -122,7 +122,7 @@ export function ShopLayout() {
           <button className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-bold hover:bg-muted" onClick={() => setCatOpen((v) => !v)} onMouseEnter={() => setCatOpen(true)}><Grid2x2 className="h-4 w-4" />دسته‌بندی کالاها<ChevronDown className="h-3.5 w-3.5" /></button>
           <span className="mx-1 h-5 w-px bg-line" />
           <NavLink to="/products" end className={nav}>همه محصولات</NavLink>
-          <NavLink to="/accessories" className={nav}>لوازم جانبی و یدکی</NavLink>
+          <NavLink to="/products?category=accessories" className={nav}>لوازم جانبی و یدکی</NavLink>
           <NavLink to="/guarantee" className={nav}>گارانتی و استعلام</NavLink>
           <a className="rounded-lg px-3 py-2 text-sm font-semibold text-ink/80 hover:text-brand" href="https://evinki.com/" target="_blank" rel="noopener">وب‌سایت اوینکی</a>
         </div>
@@ -130,7 +130,7 @@ export function ShopLayout() {
             <div className="absolute inset-x-0 top-full z-40" onMouseLeave={() => setCatOpen(false)}>
               <div className="mx-auto max-w-7xl px-4"><div className="grid gap-1 rounded-b-2xl border border-t-0 border-line bg-surface p-4 shadow-2xl sm:grid-cols-2 lg:grid-cols-4">
                 {cats.data?.map((c) => <Link key={c.id} to={`/products?category=${c.slug}`} className="rounded-xl p-3 hover:bg-muted"><div className="font-bold">{c.name}</div><div className="text-xs text-soft">{fa(c.product_count)} محصول</div></Link>)}
-                <Link to="/accessories" className="rounded-xl p-3 hover:bg-muted"><div className="font-bold">لوازم جانبی و یدکی</div><div className="text-xs text-soft">فیلتر، خرطومی، چرخ و …</div></Link>
+                <Link to="/products?category=accessories" className="rounded-xl p-3 hover:bg-muted"><div className="font-bold">لوازم جانبی و یدکی</div><div className="text-xs text-soft">فیلتر، خرطومی، چرخ و …</div></Link>
               </div></div>
             </div>
           )}
@@ -144,13 +144,13 @@ export function ShopLayout() {
           <div key={t} className="flex items-center gap-3"><div className="rounded-xl bg-brand-tint p-2.5 text-brand"><I className="h-6 w-6" /></div><div><div className="text-sm font-bold">{t}</div><div className="text-xs text-soft">{d}</div></div></div>
         ))}
       </div></section>
-      <footer className="bg-ink text-bg/80"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm md:grid-cols-4">
-        <div className="md:col-span-2"><div className="mb-3 flex items-center gap-2 text-lg font-extrabold text-bg"><img src="/logo-evinki.png" alt="" className="h-10 w-10 rounded-full" />اوینکی</div>
+      <footer className="border-t border-line bg-surface text-soft"><div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm md:grid-cols-4">
+        <div className="md:col-span-2"><div className="mb-3 flex items-center gap-2 text-lg font-extrabold text-ink"><img src="/logo-evinki.png" alt="" className="h-10 w-10 rounded-full" />اوینکی</div>
           <p className="max-w-md leading-7">تولیدکننده جاروبرقی و لوازم خانگی با استاندارد اروپایی. خرید آنلاین، ثبت و استعلام گارانتی و درخواست خدمات پس از فروش، همه در یک‌جا.</p>
-          <div className="mt-4 flex gap-3"><a href="https://www.instagram.com/evinkico/" target="_blank" rel="noopener" aria-label="اینستاگرام" className="rounded-full bg-white/10 p-2.5 hover:bg-brand"><AtSign className="h-5 w-5" /></a><a href="https://wa.me/989055365565" target="_blank" rel="noopener" aria-label="واتس‌اپ" className="rounded-full bg-white/10 p-2.5 hover:bg-brand"><MessageCircle className="h-5 w-5" /></a></div></div>
-        <div className="space-y-2"><div className="font-bold text-bg">خرید</div><Link className="block hover:text-white" to="/products">همه محصولات</Link><Link className="block hover:text-white" to="/accessories">لوازم جانبی</Link><Link className="block hover:text-white" to="/cart">سبد خرید</Link><Link className="block hover:text-white" to="/account/orders">پیگیری سفارش</Link></div>
-        <div className="space-y-2"><div className="font-bold text-bg">پشتیبانی</div><Link className="block hover:text-white" to="/guarantee">استعلام و ثبت گارانتی</Link><Link className="block hover:text-white" to="/technician/apply">همکاری تکنسین</Link><p className="num" dir="ltr">028-33362824</p><p>قزوین، خیابان امام، دفتر مرکزی</p><p>info@evinki.com</p></div>
-      </div><div className="border-t border-white/10 py-4 text-center text-xs">© {new Date().getFullYear() - 621} اوینکی — تمامی حقوق محفوظ است</div></footer>
+          <div className="mt-4 flex gap-3"><a href="https://www.instagram.com/evinkico/" target="_blank" rel="noopener" aria-label="اینستاگرام" className="rounded-full bg-muted p-2.5 text-ink hover:bg-brand hover:text-brand-ink"><AtSign className="h-5 w-5" /></a><a href="https://wa.me/989055365565" target="_blank" rel="noopener" aria-label="واتس‌اپ" className="rounded-full bg-muted p-2.5 text-ink hover:bg-brand hover:text-brand-ink"><MessageCircle className="h-5 w-5" /></a></div></div>
+        <div className="space-y-2"><div className="font-bold text-ink">خرید</div><Link className="block hover:text-brand" to="/products">همه محصولات</Link><Link className="block hover:text-brand" to="/products?category=accessories">لوازم جانبی</Link><Link className="block hover:text-brand" to="/cart">سبد خرید</Link><Link className="block hover:text-brand" to="/account/orders">پیگیری سفارش</Link></div>
+        <div className="space-y-2"><div className="font-bold text-ink">پشتیبانی</div><Link className="block hover:text-brand" to="/guarantee">استعلام و ثبت گارانتی</Link><Link className="block hover:text-brand" to="/technician/apply">همکاری تکنسین</Link><p className="num" dir="ltr">028-33362824</p><p>قزوین، خیابان امام، دفتر مرکزی</p><p>info@evinki.com</p></div>
+      </div><div className="border-t border-line py-4 text-center text-xs">© {new Date().getFullYear() - 621} اوینکی — تمامی حقوق محفوظ است</div></footer>
 
       {/* phones: marketplace-style bottom bar */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-line bg-surface pb-[env(safe-area-inset-bottom)] md:hidden" aria-label="ناوبری">

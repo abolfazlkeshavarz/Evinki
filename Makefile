@@ -108,7 +108,10 @@ reset-password: ## make reset-password U=ali P='New-secret-1'
 admin-password: ## new random password for the first admin (U=name for another user, PASSWORD=... to choose)
 	@./scripts/rotate-admin-password.sh
 
-seed-demo: ## sample catalogue (FZ530, accessories, services, standard survey)
+seed-catalog: ## load the real products and photos of evinki.com (safe to re-run; keeps your edits)
+	@./scripts/admin.sh seed-catalog
+
+seed-demo: ## seed-catalog + service items, shift, departments, standard survey
 	@./scripts/demo-data.sh
 
 demo: seed-demo ## alias of seed-demo
@@ -142,4 +145,4 @@ test: ## unit tests + type check
 	cd backend && go vet ./... && go test ./...
 	cd frontend && npm run typecheck
 
-.PHONY: help env secrets bootstrap ssl deploy-check up up-prebuilt down restart ps logs health deploy-health update images-bundle images load-images deploy-remote rollback-remote add-domain remove-domain change-domain backup backup-remote-setup restore export migrate-import shell-db ctl create-admin reset-password admin-password seed-demo demo stats import-warehouse import-guarantee import-attendance smoke dev-db dev-api dev-web test
+.PHONY: help env secrets bootstrap ssl deploy-check up up-prebuilt down restart ps logs health deploy-health update images-bundle images load-images deploy-remote rollback-remote add-domain remove-domain change-domain backup backup-remote-setup restore export migrate-import shell-db ctl create-admin reset-password admin-password seed-catalog seed-demo demo stats import-warehouse import-guarantee import-attendance smoke dev-db dev-api dev-web test

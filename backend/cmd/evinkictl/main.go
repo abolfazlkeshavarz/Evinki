@@ -7,7 +7,8 @@
 //	evinkictl import warehouse  -src sqlite:/path/warehouse.db [-images /path/public/img/parts] [-dry-run]
 //	evinkictl import attendance -src sqlite:/path/attendance.db | postgres://... [-dry-run]
 //	evinkictl stats
-//	evinkictl seed-demo
+//	evinkictl seed-catalog   (real products and photos of evinki.com)
+//	evinkictl seed-demo      (catalogue + service items, shift, departments, standard survey)
 package main
 
 import (
@@ -38,7 +39,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: evinkictl <migrate|create-user|reset-password|import|stats|seed-demo> [flags]")
+	fmt.Fprintln(os.Stderr, "usage: evinkictl <migrate|create-user|reset-password|import|stats|seed-catalog|seed-demo> [flags]")
 	os.Exit(2)
 }
 
@@ -173,6 +174,9 @@ func run(cmd string, args []string) error {
 
 	case "seed-demo":
 		return seedDemo(ctx, d)
+
+	case "seed-catalog":
+		return seedCatalog(ctx, d)
 	}
 	usage()
 	return nil
