@@ -12,7 +12,7 @@ export default {
         line: 'rgb(var(--line) / <alpha-value>)',
         ink: 'rgb(var(--ink) / <alpha-value>)',
         soft: 'rgb(var(--soft) / <alpha-value>)',
-        brand: { DEFAULT: 'rgb(var(--brand) / <alpha-value>)', ink: 'rgb(var(--brand-ink) / <alpha-value>)', tint: 'rgb(var(--brand-tint) / <alpha-value>)' },
+        brand: { DEFAULT: 'rgb(var(--brand) / <alpha-value>)', ink: 'rgb(var(--brand-ink) / <alpha-value>)', dark: 'rgb(var(--brand-dark) / <alpha-value>)', tint: 'rgb(var(--brand-tint) / <alpha-value>)' },
         ok: 'rgb(var(--ok) / <alpha-value>)',
         warn: 'rgb(var(--warn) / <alpha-value>)',
         bad: 'rgb(var(--bad) / <alpha-value>)',

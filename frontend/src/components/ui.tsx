@@ -146,15 +146,22 @@ export function ImageUpload({ value, onChange, purpose = 'image' }: { value?: st
 // ───── dialogs ─────
 export function Modal({ open, onClose, title, children, footer, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; footer?: ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null)
+  // onClose is usually an inline arrow (a new function on every render). Keeping it in a ref means the
+  // effect below runs only when the dialog opens/closes - otherwise it would re-focus the dialog on every
+  // keystroke and steal the cursor from the input being typed in.
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
   useEffect(() => {
     if (!open) return
     const prev = document.activeElement as HTMLElement | null
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeRef.current()
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
-    ref.current?.focus()
+    // focus the first field (or the dialog itself) once
+    const first = ref.current?.querySelector<HTMLElement>('input:not([type=hidden]):not([disabled]), textarea, select')
+    ;(first ?? ref.current)?.focus()
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; prev?.focus() }
-  }, [open, onClose])
+  }, [open])
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>

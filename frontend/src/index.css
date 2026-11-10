@@ -4,23 +4,23 @@
 @tailwind utilities;
 
 :root {
-  --bg: 246 247 249; --surface: 255 255 255; --muted: 241 243 246; --line: 226 230 236;
-  --ink: 21 21 21; --soft: 100 110 125;
-  --brand: 237 36 46; --brand-ink: 255 255 255; --brand-tint: 254 236 237;
-  --ok: 22 130 74; --warn: 180 105 8; --bad: 190 40 40;
+  --bg: 250 247 246; --surface: 255 255 255; --muted: 245 240 239; --line: 232 224 222;
+  --ink: 28 21 23; --soft: 112 100 102;
+  --brand: 237 36 46; --brand-dark: 158 18 28; --brand-ink: 255 255 255; --brand-tint: 253 236 237;
+  --ok: 22 130 74; --warn: 176 110 8; --bad: 165 25 30;
 }
 [data-theme='dark'] {
-  --bg: 14 17 22; --surface: 22 26 33; --muted: 30 35 44; --line: 44 51 63;
-  --ink: 236 240 245; --soft: 150 160 175;
-  --brand: 255 92 99; --brand-ink: 30 6 8; --brand-tint: 62 24 27;
-  --ok: 74 200 130; --warn: 240 170 70; --bad: 245 110 110;
+  --bg: 24 19 20; --surface: 34 28 29; --muted: 44 37 38; --line: 62 53 54;
+  --ink: 244 238 237; --soft: 170 158 160;
+  --brand: 255 92 99; --brand-dark: 120 18 26; --brand-ink: 40 6 8; --brand-tint: 66 28 31;
+  --ok: 74 200 130; --warn: 240 170 70; --bad: 255 130 130;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: 14 17 22; --surface: 22 26 33; --muted: 30 35 44; --line: 44 51 63;
-    --ink: 236 240 245; --soft: 150 160 175;
-    --brand: 255 92 99; --brand-ink: 30 6 8; --brand-tint: 62 24 27;
-    --ok: 74 200 130; --warn: 240 170 70; --bad: 245 110 110;
+    --bg: 24 19 20; --surface: 34 28 29; --muted: 44 37 38; --line: 62 53 54;
+    --ink: 244 238 237; --soft: 170 158 160;
+    --brand: 255 92 99; --brand-dark: 120 18 26; --brand-ink: 40 6 8; --brand-tint: 66 28 31;
+    --ok: 74 200 130; --warn: 240 170 70; --bad: 255 130 130;
   }
 }
 

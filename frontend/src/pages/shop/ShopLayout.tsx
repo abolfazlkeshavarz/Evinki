@@ -97,7 +97,7 @@ export function ShopLayout() {
   const tab = ({ isActive }: { isActive: boolean }) => clsx('relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold', isActive ? 'text-brand' : 'text-soft')
   return (
     <div className="flex min-h-screen flex-col pb-[calc(58px+env(safe-area-inset-bottom))] md:pb-0">
-      <div className="hidden bg-ink text-bg md:block"><div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs">
+      <div className="hidden bg-brand-dark text-white md:block"><div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-xs">
         <span className="flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" />گارانتی ۱۸ ماهه + ۳ ماه گارانتی طلایی روی همه جاروبرقی‌ها</span>
         <span className="flex items-center gap-4"><a href="tel:02833362824" className="flex items-center gap-1 num"><Phone className="h-3.5 w-3.5" />۰۲۸-۳۳۳۶۲۸۲۴</a><Link to="/technician/apply" className="hover:underline">همکاری تکنسین</Link></span>
       </div></div>

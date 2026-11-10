@@ -96,9 +96,9 @@ function Row({ title, to, children }: { title: string; to?: string; children: Re
 }
 
 const slides = [
-  { t: 'قدرتی که خانه را متحول می‌کند', s: 'جاروبرقی FZ530 Performance — موتور ۲۴۰۰ وات، فیلتر HEPA13 قابل شستشو', cta: 'مشاهده محصول', to: '/products/fz530-performance', bg: 'from-brand to-[#9f1118]' },
-  { t: 'گارانتی ۱۸ ماهه + ۳ ماه طلایی', s: 'کد گارانتی را ثبت کنید و پشتیبانی سراسری را فعال کنید', cta: 'ثبت گارانتی', to: '/guarantee', bg: 'from-[#2a2a2a] to-[#111]' },
-  { t: 'لوازم جانبی اوینکی', s: 'فیلتر هپا، خرطومی، چرخ و ملزومات مصرفی اصل', cta: 'خرید لوازم جانبی', to: '/accessories', bg: 'from-[#c4161f] to-[#ed242e]' },
+  { t: 'قدرتی که خانه را متحول می‌کند', s: 'جاروبرقی FZ530 Performance — موتور ۲۴۰۰ وات، فیلتر HEPA13 قابل شستشو', cta: 'مشاهده محصول', to: '/products/fz530-performance', bg: 'from-brand to-brand-dark' },
+  { t: 'گارانتی ۱۸ ماهه + ۳ ماه طلایی', s: 'کد گارانتی را ثبت کنید و پشتیبانی سراسری را فعال کنید', cta: 'ثبت گارانتی', to: '/guarantee', bg: 'from-brand-dark to-brand' },
+  { t: 'لوازم جانبی اوینکی', s: 'فیلتر هپا، خرطومی، چرخ و ملزومات مصرفی اصل', cta: 'خرید لوازم جانبی', to: '/accessories', bg: 'from-brand to-brand-dark' },
 ]
 
 function Hero() {
@@ -152,10 +152,10 @@ export function Home() {
           <Card key={p.id} className="w-44 shrink-0 snap-start overflow-hidden sm:w-56"><div className="aspect-square bg-muted"><Thumb src={p.image} name={p.name} /></div><div className="p-3"><div className="line-clamp-2 min-h-[2.4rem] text-sm font-semibold">{p.name}</div><div className="mt-2 text-end text-base font-extrabold num">{fa(p.price)} <span className="text-xs text-soft">تومان</span></div></div></Card>
         ))}</Row>
       )}
-      <section className="overflow-hidden rounded-3xl bg-ink p-6 text-bg md:flex md:items-center md:justify-between md:p-10">
-        <div><h2 className="flex items-center gap-2 text-xl font-extrabold"><ShieldCheck className="h-6 w-6 text-brand" />گارانتی دستگاه خود را بررسی کنید</h2><p className="mt-1 text-sm opacity-80">کد گارانتی روی دستگاه یا کارت گارانتی درج شده است.</p></div>
+      <section className="overflow-hidden rounded-3xl border border-brand/15 bg-brand-tint p-6 md:flex md:items-center md:justify-between md:p-10">
+        <div><h2 className="flex items-center gap-2 text-xl font-extrabold"><ShieldCheck className="h-6 w-6 text-brand" />گارانتی دستگاه خود را بررسی کنید</h2><p className="mt-1 text-sm text-soft">کد گارانتی روی دستگاه یا کارت گارانتی درج شده است.</p></div>
         <form className="mt-4 flex gap-2 md:mt-0 md:w-96" onSubmit={(e) => { e.preventDefault(); nav('/guarantee?code=' + encodeURIComponent(code)) }}>
-          <input className="input !bg-white/10 !text-white placeholder:!text-white/50" dir="ltr" placeholder="کد گارانتی" value={code} onChange={(e) => setCode(e.target.value)} aria-label="کد گارانتی" /><button className="btn-primary">استعلام</button>
+          <input className="input" dir="ltr" placeholder="کد گارانتی" value={code} onChange={(e) => setCode(e.target.value)} aria-label="کد گارانتی" /><button className="btn-primary">استعلام</button>
         </form>
       </section>
     </div>
