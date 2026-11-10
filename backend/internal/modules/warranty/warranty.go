@@ -77,6 +77,7 @@ type G struct {
 	GoldenExpiryDate *time.Time `db:"golden_expiry_date" json:"golden_expiry_date"`
 	Notes            string     `db:"notes" json:"notes"`
 	InvoiceFile      string     `db:"invoice_file" json:"invoice_file"`
+	CardFile         string     `db:"card_file" json:"card_file"`
 	ApprovedAt       *time.Time `db:"approved_at" json:"approved_at"`
 	CreatedAt        time.Time  `db:"created_at" json:"created_at"`
 	CustomerID       int64      `db:"customer_id" json:"customer_id"`
@@ -90,7 +91,7 @@ type G struct {
 }
 
 const gSel = `SELECT g.id,g.code,g.status,g.source,g.purchase_date,g.expiry_date,g.golden_start_date,g.golden_expiry_date,
-	g.notes,g.invoice_file,g.approved_at,g.created_at,
+	g.notes,g.invoice_file,g.card_file,g.approved_at,g.created_at,
 	c.id AS customer_id,c.full_name AS customer_name,c.phone AS customer_phone,c.city AS customer_city,
 	p.id AS product_id,p.name AS product_name,
 	(g.expiry_date - CURRENT_DATE)::int AS days_remaining,
@@ -223,6 +224,7 @@ type regIn struct {
 	City         string `json:"city"`
 	Address      string `json:"address"`
 	InvoiceFile  string `json:"invoice_file"`
+	CardFile     string `json:"card_file"`
 }
 
 func (m *mod) publicRegister(w http.ResponseWriter, r *http.Request) error {
@@ -249,6 +251,13 @@ func (m *mod) register(w http.ResponseWriter, r *http.Request, in regIn, uid *in
 	if strings.TrimSpace(in.FullName) == "" || !httpx.ValidMobile(in.Phone) {
 		return httpx.BadRequest("نام و شماره موبایل معتبر لازم است")
 	}
+	// Both photos are mandatory when a customer registers: the office checks them before approving.
+	if !strings.HasPrefix(in.InvoiceFile, "/api/v1/files/") {
+		return httpx.BadRequest("بارگذاری عکس فاکتور خرید الزامی است")
+	}
+	if !strings.HasPrefix(in.CardFile, "/api/v1/files/") {
+		return httpx.BadRequest("بارگذاری عکس کارت گارانتی الزامی است")
+	}
 	p, err := productRules(ctx, m.DB, in.ProductID)
 	if err != nil {
 		return httpx.BadRequest("محصول پیدا نشد")
@@ -268,9 +277,9 @@ func (m *mod) register(w http.ResponseWriter, r *http.Request, in regIn, uid *in
 			return e
 		}
 		g := computePeriods(purchase, p.Months, p.Golden)
-		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,status,source,invoice_file,created_by)
-			VALUES($1,$2,$3,$4,$5,$6,$7,'pending',$8,$9,$10) RETURNING id`,
-			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, source, in.InvoiceFile, uid)
+		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,status,source,invoice_file,card_file,created_by)
+			VALUES($1,$2,$3,$4,$5,$6,$7,'pending',$8,$9,$10,$11) RETURNING id`,
+			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, source, in.InvoiceFile, in.CardFile, uid)
 		return e
 	})
 	if db.IsUnique(err) {
@@ -413,8 +422,8 @@ func (m *mod) create(w http.ResponseWriter, r *http.Request) error {
 		}
 		g := computePeriods(purchase, p.Months, p.Golden)
 		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,
-			status,source,invoice_file,created_by,approved_by,approved_at) VALUES($1,$2,$3,$4,$5,$6,$7,'approved','admin',$8,$9,$9,NOW()) RETURNING id`,
-			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, in.InvoiceFile, by)
+			status,source,invoice_file,card_file,created_by,approved_by,approved_at) VALUES($1,$2,$3,$4,$5,$6,$7,'approved','admin',$8,$9,$10,$10,NOW()) RETURNING id`,
+			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, in.InvoiceFile, in.CardFile, by)
 		return e
 	})
 	if db.IsUnique(err) {
@@ -439,13 +448,14 @@ func (m *mod) patch(w http.ResponseWriter, r *http.Request) error {
 		PurchaseDate *string `json:"purchase_date"`
 		ExpiryDate   *string `json:"expiry_date"`
 		InvoiceFile  *string `json:"invoice_file"`
+		CardFile     *string `json:"card_file"`
 	}
 	if err := httpx.Decode(r, &in); err != nil {
 		return err
 	}
-	_, err = m.DB.Exec(r.Context(), `UPDATE guarantees SET notes=COALESCE($2,notes), invoice_file=COALESCE($3,invoice_file),
+	_, err = m.DB.Exec(r.Context(), `UPDATE guarantees SET notes=COALESCE($2,notes), invoice_file=COALESCE($3,invoice_file), card_file=COALESCE($6,card_file),
 		purchase_date=COALESCE($4::date,purchase_date), expiry_date=COALESCE($5::date,expiry_date), updated_at=NOW()
-		WHERE id=$1 AND deleted_at IS NULL`, id, in.Notes, in.InvoiceFile, digitsPtr(in.PurchaseDate), digitsPtr(in.ExpiryDate))
+		WHERE id=$1 AND deleted_at IS NULL`, id, in.Notes, in.InvoiceFile, digitsPtr(in.PurchaseDate), digitsPtr(in.ExpiryDate), in.CardFile)
 	if err != nil {
 		return err
 	}

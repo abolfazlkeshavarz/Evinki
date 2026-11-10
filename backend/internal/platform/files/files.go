@@ -29,7 +29,7 @@ type File struct {
 	Size int64  `db:"size_bytes" json:"size"`
 }
 
-// Mount: POST /files (any signed-in user, or guest for guarantee registration with purpose=invoice)
+// Mount: POST /files (any signed-in user, or guest for guarantee registration with purpose=invoice or guarantee_card)
 // and GET /files/{id}. Content type is sniffed from the bytes, never trusted from the client.
 func Mount(r chi.Router, d *app.Deps) {
 	_ = os.MkdirAll(d.Cfg.UploadDir, 0o755)
@@ -37,7 +37,7 @@ func Mount(r chi.Router, d *app.Deps) {
 	r.Post("/files", httpx.H(func(w http.ResponseWriter, req *http.Request) error {
 		p := auth.From(req.Context())
 		purpose := req.URL.Query().Get("purpose")
-		if p == nil && purpose != "invoice" {
+		if p == nil && purpose != "invoice" && purpose != "guarantee_card" {
 			return httpx.ErrUnauthorized
 		}
 		req.Body = http.MaxBytesReader(w, req.Body, d.Cfg.MaxUploadSize)

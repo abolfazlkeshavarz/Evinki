@@ -71,7 +71,8 @@ export function GuaranteeDetail() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-4"><KV k="محصول" v={g.product_name} /><KV k="تاریخ خرید" v={date(g.purchase_date)} /><KV k="پایان گارانتی" v={date(g.expiry_date)} /><KV k="روز باقی‌مانده" v={g.days_remaining >= 0 ? fa(g.days_remaining) : 'منقضی'} />
           {g.golden_expiry_date && <KV k="گارانتی طلایی تا" v={date(g.golden_expiry_date)} />}<KV k="منبع ثبت" v={{ web: 'ثبت آنلاین مشتری', admin: 'ثبت توسط کارمند', order: 'خرید از فروشگاه', import: 'انتقال از سامانه قدیم', app: 'اپلیکیشن' }[g.source as string] ?? g.source} />
-          {g.invoice_file && <KV k="فاکتور" v={<a className="text-brand underline" href={g.invoice_file} target="_blank">مشاهده</a>} />}{g.notes && <KV k="یادداشت" v={g.notes} />}</Card>
+          <KV k="عکس فاکتور" v={g.invoice_file ? <a href={g.invoice_file} target="_blank" rel="noopener"><img src={g.invoice_file} alt="فاکتور" className="h-20 rounded-lg border border-line object-cover" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} /><span className="text-brand underline">مشاهده</span></a> : <span className="text-soft">ندارد</span>} />
+          <KV k="عکس کارت گارانتی" v={g.card_file ? <a href={g.card_file} target="_blank" rel="noopener"><img src={g.card_file} alt="کارت گارانتی" className="h-20 rounded-lg border border-line object-cover" onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')} /><span className="text-brand underline">مشاهده</span></a> : <span className="text-soft">ندارد</span>} />{g.notes && <KV k="یادداشت" v={g.notes} />}</Card>
         <Card className="p-4"><KV k="مشتری" v={g.customer_name} /><KV k="موبایل" v={<span dir="ltr" className="num">{g.customer_phone}</span>} /><KV k="شهر" v={g.customer_city} /></Card>
       </div>
       {approver && (

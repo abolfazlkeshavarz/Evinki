@@ -47,7 +47,7 @@ function Register({ initialCode }: { initialCode: string }) {
   const products = useGet<any[]>('/lookup/products')
   const toast = useToast()
   const [done, setDone] = useState(false)
-  const [f, setF] = useState({ code: initialCode, product_id: 0, purchase_date: todayISO(), full_name: '', phone: '', national_id: '', city: '', invoice_file: '' })
+  const [f, setF] = useState({ code: initialCode, product_id: 0, purchase_date: todayISO(), full_name: '', phone: '', national_id: '', city: '', invoice_file: '', card_file: '' })
   const [chk, setChk] = useState<any>(null)
   useEffect(() => {
     setChk(null)
@@ -71,10 +71,14 @@ function Register({ initialCode }: { initialCode: string }) {
         <Field label="موبایل"><NumInput value={f.phone} onChange={(v) => setF({ ...f, phone: v })} placeholder="09123456789" /></Field>
         <Field label="کد ملی"><NumInput value={f.national_id} onChange={(v) => setF({ ...f, national_id: v })} /></Field>
         <Field label="شهر"><input className="input" value={f.city} onChange={(e) => setF({ ...f, city: e.target.value })} /></Field>
-        <Field label="عکس فاکتور (اختیاری)"><ImageUpload value={f.invoice_file} onChange={(u) => setF({ ...f, invoice_file: u })} purpose="invoice" /></Field>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="عکس فاکتور خرید *" hint="الزامی؛ عکس واضح از فاکتور یا رسید خرید"><ImageUpload value={f.invoice_file} onChange={(u) => setF({ ...f, invoice_file: u })} purpose="invoice" /></Field>
+        <Field label="عکس کارت گارانتی *" hint="الزامی؛ عکس کارت گارانتی که همراه دستگاه است"><ImageUpload value={f.card_file} onChange={(u) => setF({ ...f, card_file: u })} purpose="guarantee_card" /></Field>
       </div>
       <ActionButton className="btn-primary w-full" disabled={chk ? !chk.can_register : false} onClick={async () => {
         if (!f.product_id) { toast.info('محصول را انتخاب کنید'); return }
+        if (!f.invoice_file || !f.card_file) { toast.info('عکس فاکتور و عکس کارت گارانتی را بارگذاری کنید'); return }
         await post('/public/guarantees/register', f); setDone(true)
       }}>ثبت گارانتی</ActionButton>
     </Card>
