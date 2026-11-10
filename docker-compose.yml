@@ -1,0 +1,55 @@
+# Evinki platform: database + API + web. Everything secret comes from .env (see .env.example).
+name: evinki
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: evinki
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: evinki
+      TZ: Asia/Tehran
+    volumes: [db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evinki -d evinki"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    # loopback only: lets `make shell-db` and the importer reach it from the host, never the internet
+    ports: ["127.0.0.1:${DB_HOST_PORT:-15432}:5432"]
+
+  api:
+    image: evinki-api:latest
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DATABASE_URL: postgres://evinki:${DB_PASSWORD}@db:5432/evinki?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in .env}
+      CORS_ORIGINS: ${PUBLIC_URL}
+      BOOTSTRAP_ADMIN_USER: ${BOOTSTRAP_ADMIN_USER:-admin}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+      PAYMENT_GATEWAY: ${PAYMENT_GATEWAY:-zarinpal}
+      ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
+      ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-false}
+      SMS_ENABLED: ${SMS_ENABLED:-false}
+      SMS_USERNAME: ${SMS_USERNAME:-}
+      SMS_PASSWORD: ${SMS_PASSWORD:-}
+      LEGACY_DEVICE_KEY_SECRET: ${LEGACY_DEVICE_KEY_SECRET:-}
+    volumes: [uploads:/data/uploads]
+
+  web:
+    image: evinki-web:latest
+    build: ./frontend
+    restart: unless-stopped
+    depends_on: [api]
+    # 127.0.0.1 by default: the host nginx (TLS) is the public entry point
+    ports: ["${HTTP_PORT:-127.0.0.1:8090}:80"]
+
+volumes:
+  db_data:
+  uploads:

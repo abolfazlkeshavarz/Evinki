@@ -1,0 +1,6 @@
+.env
+backups/
+node_modules/
+dist/
+*.exe
+uploads/

@@ -1,0 +1,52 @@
+@import 'vazirmatn/Vazirmatn-font-face.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 246 247 249; --surface: 255 255 255; --muted: 241 243 246; --line: 226 230 236;
+  --ink: 21 21 21; --soft: 100 110 125;
+  --brand: 237 36 46; --brand-ink: 255 255 255; --brand-tint: 254 236 237;
+  --ok: 22 130 74; --warn: 180 105 8; --bad: 190 40 40;
+}
+[data-theme='dark'] {
+  --bg: 14 17 22; --surface: 22 26 33; --muted: 30 35 44; --line: 44 51 63;
+  --ink: 236 240 245; --soft: 150 160 175;
+  --brand: 255 92 99; --brand-ink: 30 6 8; --brand-tint: 62 24 27;
+  --ok: 74 200 130; --warn: 240 170 70; --bad: 245 110 110;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: 14 17 22; --surface: 22 26 33; --muted: 30 35 44; --line: 44 51 63;
+    --ink: 236 240 245; --soft: 150 160 175;
+    --brand: 255 92 99; --brand-ink: 30 6 8; --brand-tint: 62 24 27;
+    --ok: 74 200 130; --warn: 240 170 70; --bad: 245 110 110;
+  }
+}
+
+html { font-family: Vazirmatn, system-ui, sans-serif; }
+body { @apply bg-bg text-ink antialiased; margin: 0; -webkit-tap-highlight-color: transparent; }
+* { @apply border-line; }
+:focus-visible { outline: 2px solid rgb(var(--brand)); outline-offset: 2px; }
+input, select, textarea, button { font-family: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+
+@layer components {
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 min-h-[44px] text-sm font-semibold transition select-none disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-primary { @apply btn bg-brand text-brand-ink hover:opacity-90 active:scale-[.98]; }
+  .btn-soft { @apply btn bg-brand-tint text-brand hover:opacity-80; }
+  .btn-ghost { @apply btn border border-line bg-surface hover:bg-muted; }
+  .btn-danger { @apply btn bg-bad text-white hover:opacity-90; }
+  .btn-sm { @apply min-h-[36px] px-3 text-xs; }
+  .input { @apply w-full rounded-xl border border-line bg-surface px-3 min-h-[44px] text-sm placeholder:text-soft/70 focus:border-brand; }
+  textarea.input { @apply py-2; }
+  .label { @apply mb-1 block text-xs font-medium text-soft; }
+  .card { @apply rounded-2xl border border-line bg-surface shadow-card; }
+  .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .th { @apply px-3 py-2.5 text-start text-xs font-semibold text-soft whitespace-nowrap; }
+  .td { @apply px-3 py-3 text-sm; }
+}
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; }
+}
