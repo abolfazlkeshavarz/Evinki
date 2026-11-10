@@ -25,6 +25,9 @@ var Defaults = map[string]any{
 	"hr_fingerprint_enabled":  false,
 	"hr_pin_enabled":          true,
 	"hr_liveness":             true,
+	"hr_face_threshold":       0.42, // cosine similarity needed to accept a face
+	"hr_face_margin":          0.04, // best match must beat the runner-up by this much
+	"hr_punch_cooldown":       60,   // seconds before the same person can punch again on a kiosk
 	"sepidar_main_warehouse":  "1001",
 }
 

@@ -11,13 +11,17 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.107.1",
+    "@vladmandic/face-api": "^1.7.15",
     "clsx": "^2.1.1",
+    "idb": "^8.0.3",
     "jsqr": "^1.4.0",
     "lucide-react": "^1.70.0",
+    "onnxruntime-web": "^1.30.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5",
+    "recharts": "^3.10.1",
     "vazirmatn": "^33.0.3"
   },
   "devDependencies": {

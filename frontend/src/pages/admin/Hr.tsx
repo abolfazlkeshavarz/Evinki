@@ -8,35 +8,6 @@ import { addMonthsISO, date, dateTime, fa, minutes, todayISO } from '../../lib/f
 import { qs, useGet, useInvalidate } from '../../lib/hooks'
 import { dayStatus, leaveStatus, leaveType, priority, taskStatus } from '../../lib/labels'
 
-export function Employees() {
-  const deps = useGet<any>('/hr/departments?limit=200')
-  const shifts = useGet<any>('/hr/shifts?limit=200')
-  const [pin, setPin] = useState<any>(null)
-  const inv = useInvalidate()
-  const can = useCan()
-  const fields: FieldDef[] = [
-    { key: 'personnel_code', label: 'کد پرسنلی', required: true, half: true }, { key: 'national_code', label: 'کد ملی', half: true },
-    { key: 'first_name', label: 'نام', required: true, half: true }, { key: 'last_name', label: 'نام خانوادگی', required: true, half: true },
-    { key: 'mobile', label: 'موبایل', half: true }, { key: 'position', label: 'سمت', half: true },
-    { key: 'department_id', label: 'واحد', type: 'select', half: true, options: deps.data?.items.map((d: any) => ({ value: d.id, label: d.name })) },
-    { key: 'shift_id', label: 'شیفت', type: 'select', half: true, options: shifts.data?.items.map((s: any) => ({ value: s.id, label: `${s.name} (${s.start_time}–${s.end_time})` })) },
-    { key: 'hire_date', label: 'تاریخ استخدام', type: 'jdate', half: true }, { key: 'is_active', label: 'فعال', type: 'bool', half: true }, { key: 'notes', label: 'یادداشت', type: 'textarea' },
-  ]
-  return (
-    <>
-      <ResourcePage title="پرسنل" path="/hr/employees" fields={fields} canWrite={['hr.manage']} canDelete={['hr.delete']} newRow={{ is_active: true }} pageSize={25}
-        rowActions={(r) => can('hr.manage') && <button className="btn-ghost btn-sm" onClick={() => setPin({ id: r.id, name: `${r.first_name} ${r.last_name}`, pin: '' })}>رمز ورود</button>}
-        columns={[{ head: 'کد', cell: (r) => <span className="num">{r.personnel_code}</span> }, { head: 'نام', cell: (r) => <b>{r.first_name} {r.last_name}</b> }, { head: 'واحد', cell: (r) => r.department || '—' }, { head: 'شیفت', cell: (r) => r.shift || '—' },
-          { head: 'تشخیص چهره', cell: (r) => (r.face_enrolled ? <Badge tone="ok">ثبت شده</Badge> : <Badge>ندارد</Badge>) }, { head: 'رمز', cell: (r) => (r.has_pin ? <Badge tone="ok">دارد</Badge> : <Badge tone="warn">ندارد</Badge>) },
-          { head: 'وضعیت', cell: (r) => <Badge tone={r.is_active ? 'ok' : 'mute'}>{r.is_active ? 'فعال' : 'غیرفعال'}</Badge> }]} />
-      <Modal open={!!pin} onClose={() => setPin(null)} title={`رمز ورود — ${pin?.name ?? ''}`} footer={<ActionButton onClick={async () => { await post(`/hr/employees/${pin.id}/pin`, { pin: pin.pin }); inv('/hr/employees'); setPin(null) }}>ذخیره</ActionButton>}>
-        <p className="mb-3 text-sm text-soft">رمز ۴ تا ۸ رقمی برای ورود/خروج با کد پرسنلی (وقتی تشخیص چهره ممکن نیست).</p>
-        {pin && <NumInput maxLength={8} value={pin.pin} onChange={(v) => setPin({ ...pin, pin: v })} placeholder="مثلاً ۴۳۲۱" />}
-      </Modal>
-    </>
-  )
-}
-
 export function Shifts() {
   const days = ['شنبه', 'یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه']
   return (
@@ -49,35 +20,6 @@ export function Shifts() {
         fields={[{ key: 'name', label: 'نام واحد', required: true }, { key: 'description', label: 'توضیح' }, { key: 'is_active', label: 'فعال', type: 'bool' }]} columns={[{ head: 'واحد', cell: (r) => <b>{r.name}</b> }, { head: 'توضیح', cell: (r) => r.description || '—' }]} />
       <ResourcePage title="تعطیلات رسمی" path="/hr/holidays" canWrite={['hr.manage']} canDelete={['hr.delete']} searchable={false} pageSize={60}
         fields={[{ key: 'day', label: 'تاریخ', type: 'jdate', required: true, half: true }, { key: 'title', label: 'مناسبت', required: true, half: true }]} columns={[{ head: 'تاریخ', cell: (r) => date(r.day) }, { head: 'مناسبت', cell: (r) => r.title }]} />
-    </div>
-  )
-}
-
-export function Report() {
-  const [from, setFrom] = useState(() => addMonthsISO(todayISO(), -1))
-  const [to, setTo] = useState(todayISO())
-  const [emp, setEmp] = useState<any>(null)
-  const dash = useGet<any>('/hr/dashboard')
-  const d = useGet<any>('/hr/reports/range' + qs({ from, to }))
-  const one = useGet<any>(emp ? '/hr/reports/range' + qs({ from, to, employee_id: emp.employee_id }) : null)
-  return (
-    <div>
-      <PageHeader title="گزارش حضور و غیاب" actions={<button className="btn-ghost btn-sm" onClick={() => download(`/hr/reports/range.csv${qs({ from, to })}`, 'attendance.csv')}><Download className="h-4 w-4" />خروجی اکسل (CSV)</button>} />
-      {dash.data && <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4"><Card className="p-4"><div className="text-xs text-soft">امروز حاضر</div><div className="text-2xl font-bold num">{fa(dash.data.arrived_today)} / {fa(dash.data.employees)}</div></Card><Card className="p-4"><div className="text-xs text-soft">داخل کارخانه</div><div className="text-2xl font-bold num">{fa(dash.data.inside_now)}</div></Card><Card className="p-4"><div className="text-xs text-soft">مرخصی در انتظار</div><div className="text-2xl font-bold num">{fa(dash.data.pending_leaves)}</div></Card><Card className="p-4"><div className="text-xs text-soft">دستگاه آفلاین</div><div className={`text-2xl font-bold num ${dash.data.devices_offline ? 'text-bad' : ''}`}>{fa(dash.data.devices_offline)} / {fa(dash.data.devices)}</div></Card></div>}
-      <Card>
-        <div className="flex flex-wrap items-end gap-3 border-b border-line p-3"><Field label="از"><JalaliInput value={from} onChange={(v) => v && setFrom(v)} /></Field><Field label="تا"><JalaliInput value={to} onChange={(v) => v && setTo(v)} /></Field></div>
-        {d.isLoading ? <Loading /> : d.error ? <ErrorBox error={d.error} /> : !d.data.employees.length ? <Empty title="پرسنل فعالی نیست" /> : (
-          <DataTable rows={d.data.employees} rowKey={(r: any) => r.employee_id} onRow={setEmp} cols={[{ head: 'پرسنل', cell: (r: any) => <div><b>{r.name}</b><div className="text-xs text-soft">{r.department}</div></div> }, { head: 'حضور', cell: (r: any) => fa(r.present_days) },
-            { head: 'غیبت', cell: (r: any) => <span className={r.absent_days ? 'font-bold text-bad num' : 'num'}>{fa(r.absent_days)}</span> }, { head: 'مرخصی', cell: (r: any) => fa(r.leave_days) }, { head: 'ناقص', cell: (r: any) => (r.incomplete_days ? <Badge tone="warn">{fa(r.incomplete_days)}</Badge> : '—') },
-            { head: 'کارکرد', cell: (r: any) => minutes(r.worked_minutes) }, { head: 'تأخیر', cell: (r: any) => minutes(r.late_minutes) }, { head: 'اضافه‌کار', cell: (r: any) => minutes(r.overtime_minutes) }]} />
-        )}
-      </Card>
-      <Modal open={!!emp} onClose={() => setEmp(null)} wide title={emp?.name ?? ''}>
-        {one.isLoading || !one.data ? <Loading /> : (
-          <table className="w-full text-sm"><thead><tr className="text-soft"><th className="th">تاریخ</th><th className="th">وضعیت</th><th className="th">ورود</th><th className="th">خروج</th><th className="th">کارکرد</th><th className="th">تأخیر</th></tr></thead><tbody>
-            {one.data.employees[0]?.days?.map((x: any) => <tr key={x.date} className="border-t border-line/60"><td className="td num">{x.jalali}</td><td className="td"><StatusBadge map={dayStatus} value={x.status} /></td><td className="td num" dir="ltr">{x.first_in || '—'}</td><td className="td num" dir="ltr">{x.last_out || '—'}</td><td className="td">{minutes(x.worked_minutes)}</td><td className="td">{x.late_minutes ? minutes(x.late_minutes) : '—'}</td></tr>)}</tbody></table>
-        )}
-      </Modal>
     </div>
   )
 }
@@ -112,8 +54,10 @@ export function Leaves() {
 
 export function Tasks() {
   const emps = useGet<any>('/hr/employees?limit=500')
+  const [logTask, setLogTask] = useState<any>(null)
   return (
-    <ResourcePage title="وظایف و شرح وظایف" path="/hr/tasks" canWrite={['hr.manage']} canDelete={['hr.delete']} newRow={{ status: 'todo', priority: 'normal', recurrence: 'none', progress: 0, is_active: true }}
+    <>
+    <ResourcePage rowActions={(r) => <button className="btn-soft btn-sm" onClick={() => setLogTask(r)}>گزارش روزانه</button>} title="وظایف و شرح وظایف" path="/hr/tasks" canWrite={['hr.manage']} canDelete={['hr.delete']} newRow={{ status: 'todo', priority: 'normal', recurrence: 'none', progress: 0, is_active: true }}
       fields={[{ key: 'title', label: 'عنوان', required: true }, { key: 'description', label: 'شرح', type: 'textarea' },
         { key: 'employee_id', label: 'مسئول', type: 'select', half: true, options: emps.data?.items.map((e: any) => ({ value: e.id, label: `${e.first_name} ${e.last_name}` })) },
         { key: 'status', label: 'وضعیت', type: 'select', half: true, options: Object.entries(taskStatus).map(([k, v]) => ({ value: k, label: v[0] })) },
@@ -121,6 +65,27 @@ export function Tasks() {
         { key: 'recurrence', label: 'تکرار', type: 'select', half: true, options: [{ value: 'none', label: 'یک‌بار' }, { value: 'daily', label: 'روزانه' }, { value: 'weekly', label: 'هفتگی' }, { value: 'monthly', label: 'ماهانه' }] },
         { key: 'due_date', label: 'سررسید', type: 'jdate', half: true }, { key: 'progress', label: 'پیشرفت (٪)', type: 'int', half: true }]}
       columns={[{ head: 'وظیفه', cell: (r) => <b>{r.title}</b> }, { head: 'مسئول', cell: (r) => r.employee_name || '—' }, { head: 'سررسید', cell: (r) => date(r.due_date) }, { head: 'اولویت', cell: (r) => <StatusBadge map={priority} value={r.priority} /> }, { head: 'پیشرفت', cell: (r) => `${fa(r.progress)}٪` }, { head: 'وضعیت', cell: (r) => <StatusBadge map={taskStatus} value={r.status} /> }]} />
+    <TaskLogs task={logTask} onClose={() => setLogTask(null)} />
+    </>
+  )
+}
+
+/** Day-by-day log of a task: what was done, how long it took. */
+function TaskLogs({ task, onClose }: { task: any; onClose: () => void }) {
+  const logs = useGet<any[]>(task ? `/hr/tasks/${task.id}/logs` : null)
+  const inv = useInvalidate()
+  const [f, setF] = useState({ log_date: todayISO(), status: 'done', spent_minutes: '', note: '' })
+  return (
+    <Modal open={!!task} onClose={onClose} wide title={`گزارش روزانه — ${task?.title ?? ''}`}
+      footer={<ActionButton onClick={async () => { await post(`/hr/tasks/${task.id}/logs`, { log_date: f.log_date, status: f.status, spent_minutes: f.spent_minutes ? +f.spent_minutes : null, note: f.note }); inv(`/hr/tasks/${task.id}`); setF({ ...f, note: '', spent_minutes: '' }) }}>ثبت گزارش</ActionButton>}>
+      <div className="mb-4 grid gap-3 sm:grid-cols-4">
+        <Field label="تاریخ"><JalaliInput value={f.log_date} onChange={(v) => v && setF({ ...f, log_date: v })} /></Field>
+        <Field label="وضعیت"><select className="input" value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}><option value="done">انجام شد</option><option value="partial">نیمه‌کاره</option><option value="skipped">انجام نشد</option></select></Field>
+        <Field label="مدت (دقیقه)"><NumInput value={f.spent_minutes} onChange={(v) => setF({ ...f, spent_minutes: v })} /></Field>
+        <Field label="توضیح"><input className="input" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} /></Field>
+      </div>
+      {logs.isLoading ? <Loading /> : !logs.data?.length ? <Empty title="هنوز گزارشی ثبت نشده" /> : <ul className="divide-y divide-line/60 text-sm">{logs.data.map((l) => <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span className="num">{date(l.log_date)}</span><span>{l.note || '—'}</span><span className="text-soft">{l.spent_minutes ? minutes(l.spent_minutes) : ''}</span><Badge tone={l.status === 'done' ? 'ok' : l.status === 'partial' ? 'warn' : 'bad'}>{{ done: 'انجام شد', partial: 'نیمه‌کاره', skipped: 'انجام نشد' }[l.status as string] ?? l.status}</Badge></li>)}</ul>}
+    </Modal>
   )
 }
 

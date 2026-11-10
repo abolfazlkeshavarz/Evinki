@@ -175,6 +175,9 @@ func run(cmd string, args []string) error {
 	case "seed-demo":
 		return seedDemo(ctx, d)
 
+	case "seed-hr-demo":
+		return seedHRDemo(ctx, d, len(os.Args) > 2 && os.Args[2] == "-clear")
+
 	case "seed-catalog":
 		return seedCatalog(ctx, d)
 	}

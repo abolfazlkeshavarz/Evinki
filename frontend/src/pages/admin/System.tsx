@@ -130,7 +130,12 @@ export function SettingsPage() {
       <Card className="space-y-1 p-4"><h2 className="mb-1 font-bold">انبار</h2>
         <Toggle k="wh_check_stock" label="خروج بیش از موجودی مجاز نباشد" /><Toggle k="wh_approval_out" label="خروج‌های انباردار نیاز به تایید مدیر داشته باشد" /><Toggle k="wh_approval_in" label="ورودی‌های انباردار نیاز به تایید مدیر داشته باشد" /><Toggle k="wh_count_blind" label="در انبارگردانی موجودی سیستم به انباردار نمایش داده نشود" /></Card>
       <Card className="space-y-1 p-4"><h2 className="mb-1 font-bold">خدمات و نظرسنجی</h2><Toggle k="service_auto_survey" label="پس از هر تعمیر تایید‌شده نظرسنجی خودکار ارسال شود" hint="نیازمند نظرسنجی فعال با ماشه «پس از تعمیر»" /></Card>
-      <Card className="space-y-1 p-4"><h2 className="mb-1 font-bold">حضور و غیاب</h2><Toggle k="hr_face_enabled" label="ورود با تشخیص چهره" /><Toggle k="hr_pin_enabled" label="ورود با کد پرسنلی و رمز" /><Toggle k="hr_fingerprint_enabled" label="ورود با اثر انگشت" /><Toggle k="hr_liveness" label="تشخیص زنده بودن (ضد عکس)" /></Card>
+      <Card className="space-y-1 p-4"><h2 className="mb-1 font-bold">حضور و غیاب</h2><Toggle k="hr_face_enabled" label="ورود با تشخیص چهره" /><Toggle k="hr_pin_enabled" label="ورود با کد پرسنلی و رمز" /><Toggle k="hr_fingerprint_enabled" label="ورود با اثر انگشت" /><Toggle k="hr_liveness" label="تشخیص زنده بودن (ضد عکس)" hint="پرسنل باید حدود دو ثانیه ثابت جلوی دوربین بماند" />
+        <div className="grid gap-3 pt-2 sm:grid-cols-3">
+          <Field label="آستانه شباهت چهره" hint="۰٫۳۵ آسان‌گیر تا ۰٫۵۵ سخت‌گیر؛ پیش‌فرض ۰٫۴۲"><input className="input num" dir="ltr" type="number" step="0.01" min="0.2" max="0.9" value={v.hr_face_threshold} onChange={(e) => set('hr_face_threshold', Number(e.target.value))} /></Field>
+          <Field label="حاشیه اطمینان" hint="فاصلهٔ نفر اول با نفر دوم؛ پیش‌فرض ۰٫۰۴"><input className="input num" dir="ltr" type="number" step="0.01" min="0" max="0.3" value={v.hr_face_margin} onChange={(e) => set('hr_face_margin', Number(e.target.value))} /></Field>
+          <Field label="فاصله بین دو تردد (ثانیه)" hint="جلوگیری از ثبت پشت‌سرهم"><input className="input num" dir="ltr" type="number" min="0" max="3600" value={v.hr_punch_cooldown} onChange={(e) => set('hr_punch_cooldown', Number(e.target.value))} /></Field>
+        </div></Card>
       <ActionButton className="btn-primary" disabled={!Object.keys(d).length} success="تنظیمات ذخیره شد" onClick={async () => { await put('/admin/settings', d); setD({}); inv('/admin/settings') }}>ذخیره تنظیمات</ActionButton>
     </div>
   )

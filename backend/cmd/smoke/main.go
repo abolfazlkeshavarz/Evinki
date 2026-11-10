@@ -305,6 +305,32 @@ func main() {
 	check("bad device key rejected", code == 401, code)
 	code, rp, _ := call("GET", "/hr/reports/range?employee_id="+fmt.Sprint(id(emp)), admin, nil)
 	check("attendance report builds", code == 200 && rp["employees"] != nil, rp)
+	check("report carries chart data (series, departments, totals)", rp["series"] != nil && rp["departments"] != nil && rp["totals"] != nil && rp["arrivals"] != nil, rp)
+
+	vec := make([]float64, 512)
+	for i := range vec {
+		vec[i] = float64(i%7) / 10
+	}
+	for n := 0; n < 2; n++ {
+		code, _, raw = call("POST", fmt.Sprintf("/hr/employees/%d/faces", id(emp)), admin, M{"vector": vec, "model_name": "mobilefacenet-arcface-512", "quality": 0.9, "image": "data:image/jpeg;base64,AAAA"})
+		check("face sample stored", code == 201, string(raw))
+	}
+	_, facesRaw := rawGet(fmt.Sprintf("/hr/employees/%d/faces", id(emp)), admin)
+	var faces []M
+	_ = json.Unmarshal(facesRaw, &faces)
+	check("face samples listed (with thumbnail)", len(faces) == 2 && faces[0]["image"] != nil, string(facesRaw))
+	code, _, _ = call("DELETE", fmt.Sprintf("/hr/employees/%d/faces/%d", id(emp), int64(num(faces[0], "id"))), admin, nil)
+	check("one face sample deleted", code == 204, code)
+	code, kc, raw := call("GET", "/kiosk/config", "", nil, "X-Device-Key", devKey)
+	check("kiosk config has thresholds", code == 200 && num(kc, "threshold") > 0, string(raw))
+	code, kv, raw := call("GET", "/kiosk/gallery/version", "", nil, "X-Device-Key", devKey)
+	check("kiosk gallery version", code == 200 && str(kv, "version") != "", string(raw))
+	code, ds, raw := call("GET", "/hr/dashboard", admin, nil)
+	check("HR dashboard (counters, 7-day trend, departments)", code == 200 && ds["counters"] != nil && ds["trend"] != nil && ds["departments"] != nil, string(raw))
+	_, todayRaw := rawGet("/hr/today", admin)
+	check("today status lists the employee", strings.Contains(string(todayRaw), "E"+sfx), string(todayRaw))
+	_, csvRaw := rawGet("/hr/reports/range.csv?detail=1", admin)
+	check("daily detail CSV export", strings.Contains(string(csvRaw), "E"+sfx), string(csvRaw))
 
 	fmt.Println("\n[access control & audit]")
 	code, _, _ = call("GET", "/admin/users", tech, nil)

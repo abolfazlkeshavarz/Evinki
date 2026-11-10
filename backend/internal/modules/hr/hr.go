@@ -71,6 +71,8 @@ func Mount(r chi.Router, d *app.Deps) {
 		r.Use(auth.Require(read))
 		r.Get("/hr/attendance", httpx.H(m.attendance))
 		r.Get("/hr/dashboard", httpx.H(m.dashboard))
+		r.Get("/hr/today", httpx.H(m.today))
+		r.Get("/hr/employees/{id}/faces", httpx.H(m.listFaces))
 		r.Get("/hr/reports/range", httpx.H(m.rangeReport))
 		r.Get("/hr/reports/range.csv", httpx.H(m.rangeCSV))
 		r.Get("/hr/leaves", httpx.H(m.leaves))
@@ -85,6 +87,7 @@ func Mount(r chi.Router, d *app.Deps) {
 		r.Post("/hr/employees/{id}/pin", httpx.H(m.setPin))
 		r.Post("/hr/employees/{id}/faces", httpx.H(m.addFace))
 		r.Delete("/hr/employees/{id}/faces", httpx.H(m.clearFaces))
+		r.Delete("/hr/employees/{id}/faces/{faceId}", httpx.H(m.deleteFace))
 		r.Post("/hr/tasks/{id}/logs", httpx.H(m.addTaskLog))
 	})
 	r.With(auth.Require(del)).Delete("/hr/attendance/{id}", httpx.H(m.deletePunch))
@@ -94,6 +97,8 @@ func Mount(r chi.Router, d *app.Deps) {
 		r.Patch("/hr/devices/{id}", httpx.H(m.patchDevice))
 		r.Post("/hr/devices/{id}/rotate-key", httpx.H(m.rotateKey))
 		r.Post("/hr/employees/{id}/fingerprint-jobs", httpx.H(m.fingerprintJob))
+		r.Get("/hr/employees/{id}/fingerprint-jobs", httpx.H(m.fpJobsOf))
+		r.Delete("/hr/fingerprint-jobs/{jobId}", httpx.H(m.cancelFpJob))
 	})
 
 	// employees ask for leave with their personnel code + PIN, no account needed

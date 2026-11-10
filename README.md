@@ -29,7 +29,7 @@ DOMAIN=shop.evinki.com LETSENCRYPT_EMAIL=you@evinki.com ZARINPAL_MERCHANT_ID=xxx
 make deploy-remote HOST=root@SERVER DOMAIN=shop.evinki.com LETSENCRYPT_EMAIL=you@evinki.com
 ```
 
-Details: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Run `make help` for every command.
+Details: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Attendance (face enrolment, kiosk, graphs): [docs/ATTENDANCE.md](docs/ATTENDANCE.md). Run `make help` for every command.
 
 ## Moving from the current systems
 

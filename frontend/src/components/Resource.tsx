@@ -78,17 +78,17 @@ export function FormFields({ fields, value, onChange, creating }: { fields: Fiel
  * A complete list + create/edit/delete screen from a declaration.
  * Server-side search, paging and permissions come from the /admin/... CRUD endpoints.
  */
-export function ResourcePage({ title, subtitle, path, fields, columns, empty, filters, canWrite, canDelete, extraActions, rowActions, pageSize = 20, searchable = true, newRow }: {
+export function ResourcePage({ title, subtitle, path, fields, columns, empty, filters, canWrite, canDelete, extraActions, rowActions, pageSize = 20, searchable = true, newRow, query }: {
   title: string; subtitle?: string; path: string; fields: FieldDef[]; columns: Col<any>[]
   empty?: any; filters?: ReactNode; canWrite?: string[]; canDelete?: string[]; extraActions?: ReactNode
-  rowActions?: (r: any) => ReactNode; pageSize?: number; searchable?: boolean; newRow?: any
+  rowActions?: (r: any) => ReactNode; pageSize?: number; searchable?: boolean; newRow?: any; query?: Record<string, string | number | undefined>
 }) {
   const can = useCan()
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [edit, setEdit] = useState<any>(null)
   const inv = useInvalidate()
-  const list = useGet<any>(path + qs({ q, page, limit: pageSize }))
+  const list = useGet<any>(path + qs({ q, page, limit: pageSize, ...query }))
   const writable = !canWrite || can(...canWrite)
   const deletable = !!canDelete && can(...canDelete)
   const save = async () => {

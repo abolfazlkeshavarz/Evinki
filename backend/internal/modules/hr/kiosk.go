@@ -61,6 +61,7 @@ func (m *mod) mountKiosk(r chi.Router) {
 		r.Use(m.deviceAuth)
 		r.Get("/config", httpx.H(m.kioskConfig))
 		r.Get("/gallery", httpx.H(m.kioskGallery))
+		r.Get("/gallery/version", httpx.H(m.kioskGalleryVersion))
 		r.Post("/heartbeat", httpx.H(m.kioskHeartbeat))
 		r.Post("/punches", httpx.H(m.kioskPunches))
 		r.Post("/pin-punch", httpx.H(m.kioskPin))
@@ -75,7 +76,9 @@ func (m *mod) kioskConfig(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	httpx.OK(w, map[string]any{"device": dev(r).Name, "server_time": time.Now().UTC(),
-		"face": s["hr_face_enabled"], "fingerprint": s["hr_fingerprint_enabled"], "pin": s["hr_pin_enabled"], "liveness": s["hr_liveness"]})
+		"face": s["hr_face_enabled"], "fingerprint": s["hr_fingerprint_enabled"], "pin": s["hr_pin_enabled"], "liveness": s["hr_liveness"],
+		"threshold": s["hr_face_threshold"], "ambiguity_margin": s["hr_face_margin"], "cooldown_seconds": s["hr_punch_cooldown"],
+		"company": s["company_name"]})
 	return nil
 }
 
@@ -353,3 +356,13 @@ func (m *mod) fpComplete(w http.ResponseWriter, r *http.Request) error {
 }
 
 var _ = fmt.Sprint
+
+// kioskGalleryVersion is a cheap fingerprint of the face gallery, so a tablet only downloads it when it changed.
+func (m *mod) kioskGalleryVersion(w http.ResponseWriter, r *http.Request) error {
+	v, err := db.Scalar[string](r.Context(), m.DB, `SELECT COUNT(*)||'-'||COALESCE(MAX(f.id),0) FROM face_embeddings f JOIN employees e ON e.id=f.employee_id WHERE f.is_active AND e.is_active`)
+	if err != nil {
+		return err
+	}
+	httpx.OK(w, map[string]any{"version": v})
+	return nil
+}

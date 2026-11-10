@@ -2,7 +2,6 @@ package hr
 
 import (
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
@@ -59,6 +58,8 @@ type EmpReport struct {
 	LateMin       int      `json:"late_minutes"`
 	EarlyMin      int      `json:"early_leave_minutes"`
 	OvertimeMin   int      `json:"overtime_minutes"`
+	LateCount     int      `json:"late_count"`
+	Rate          float64  `json:"attendance_rate"` // present / (present+absent+incomplete) * 100
 	Days          []DayRow `json:"days,omitempty"`
 }
 
@@ -200,9 +201,15 @@ func (m *mod) build(r *http.Request, from, to time.Time, withDays bool, onlyEmp 
 			rep.LateMin += row.LateMin
 			rep.EarlyMin += row.EarlyMin
 			rep.OvertimeMin += row.OvertimeMin
+			if row.LateMin > 0 {
+				rep.LateCount++
+			}
 			if withDays && row.Status != "" {
 				rep.Days = append(rep.Days, row)
 			}
+		}
+		if due := rep.Present + rep.Absent + rep.Incomplete; due > 0 {
+			rep.Rate = float64(int(float64(rep.Present)/float64(due)*1000+0.5)) / 10
 		}
 		out = append(out, rep)
 	}
@@ -253,12 +260,22 @@ func (m *mod) rangeReport(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	rep, err := m.build(r, from, to, httpx.Q(r, "days") == "1" || httpx.Q(r, "employee_id") != "", qint(r, "employee_id"))
+	wantDays := httpx.Q(r, "days") == "1" || httpx.Q(r, "employee_id") != ""
+	rep, err := m.build(r, from, to, true, qint(r, "employee_id"))
 	if err != nil {
 		return err
 	}
 	sort.SliceStable(rep, func(i, j int) bool { return rep[i].Name < rep[j].Name })
-	httpx.OK(w, map[string]any{"from": from.Format("2006-01-02"), "to": to.Format("2006-01-02"), "employees": rep})
+	series, arrivals := daySeries(rep)
+	depts := deptSummary(rep)
+	totals := totalsOf(rep)
+	if !wantDays {
+		for i := range rep {
+			rep[i].Days = nil
+		}
+	}
+	httpx.OK(w, map[string]any{"from": from.Format("2006-01-02"), "to": to.Format("2006-01-02"), "employees": rep,
+		"series": series, "arrivals": arrivals, "departments": depts, "totals": totals})
 	return nil
 }
 
@@ -267,9 +284,13 @@ func (m *mod) rangeCSV(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	rep, err := m.build(r, from, to, false, 0)
+	detail := httpx.Q(r, "detail") == "1"
+	rep, err := m.build(r, from, to, detail, 0)
 	if err != nil {
 		return err
+	}
+	if detail {
+		return writeDetailCSV(w, rep)
 	}
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", `attachment; filename="attendance.csv"`)
@@ -284,19 +305,3 @@ func (m *mod) rangeCSV(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (m *mod) dashboard(w http.ResponseWriter, r *http.Request) error {
-	b, err := db.Scalar[json.RawMessage](r.Context(), m.DB, `SELECT row_to_json(t) FROM (SELECT
-	  (SELECT COUNT(*) FROM employees WHERE is_active)::int AS employees,
-	  (SELECT COUNT(DISTINCT employee_id) FROM attendance_records WHERE work_date=CURRENT_DATE AND kind='in')::int AS arrived_today,
-	  (SELECT COUNT(*) FROM (SELECT employee_id FROM attendance_records WHERE work_date=CURRENT_DATE GROUP BY employee_id
-	       HAVING (array_agg(kind ORDER BY happened_at DESC))[1]='in') x)::int AS inside_now,
-	  (SELECT COUNT(*) FROM leave_requests WHERE status='pending')::int AS pending_leaves,
-	  (SELECT COUNT(*) FROM attendance_devices WHERE is_active AND (last_seen_at IS NULL OR last_seen_at < NOW()-INTERVAL '10 minutes'))::int AS devices_offline,
-	  (SELECT COUNT(*) FROM attendance_devices WHERE is_active)::int AS devices) t`)
-	if err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write(b)
-	return nil
-}

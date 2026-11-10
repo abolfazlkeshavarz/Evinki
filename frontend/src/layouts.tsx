@@ -83,8 +83,10 @@ const sections: { title: string; items: NavItem[] }[] = [
     { to: '/admin/warehouse/labels', label: 'برچسب QR', icon: ScanLine, perms: ['wh.manage'] },
   ] },
   { title: 'منابع انسانی', items: [
+    { to: '/admin/hr', label: 'داشبورد حضور', icon: Activity, perms: ['hr.read'], end: true },
+    { to: '/admin/hr/attendance', label: 'ترددها', icon: Clock, perms: ['hr.read'] },
     { to: '/admin/hr/employees', label: 'پرسنل', icon: Users, perms: ['hr.read'] },
-    { to: '/admin/hr/report', label: 'گزارش حضور و غیاب', icon: Activity, perms: ['hr.read'] },
+    { to: '/admin/hr/report', label: 'گزارش و نمودار', icon: Activity, perms: ['hr.read'] },
     { to: '/admin/hr/leaves', label: 'مرخصی‌ها', icon: Calendar, perms: ['hr.read'] },
     { to: '/admin/hr/tasks', label: 'وظایف', icon: ClipboardList, perms: ['hr.read'] },
     { to: '/admin/hr/devices', label: 'دستگاه‌های حضور', icon: Fingerprint, perms: ['hr.read'] },

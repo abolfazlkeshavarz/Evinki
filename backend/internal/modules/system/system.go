@@ -63,7 +63,7 @@ func (m *mod) putSettings(w http.ResponseWriter, r *http.Request) error {
 			if _, ok := v.(bool); !ok {
 				return httpx.BadRequest("مقدار بولی لازم است: " + k)
 			}
-		case int:
+		case int, float64:
 			if _, ok := v.(float64); !ok {
 				return httpx.BadRequest("مقدار عددی لازم است: " + k)
 			}

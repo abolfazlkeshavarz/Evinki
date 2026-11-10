@@ -35,7 +35,7 @@ the role is allowed to use (orders, guarantees approve/renew, pipeline, part req
 stock documents approve, leaves review, survey results…).
 
 ## Attendance devices
-Header `X-Device-Key`. `GET /kiosk/config|gallery`, `POST /kiosk/heartbeat`, `POST /kiosk/punches` (batch of
+Header `X-Device-Key`. `GET /kiosk/config|gallery|gallery/version`, `POST /kiosk/heartbeat`, `POST /kiosk/punches` (batch of
 ≤500, idempotent by `client_uuid`), `POST /kiosk/pin-punch`, `GET /kiosk/fingerprint/jobs`,
 `POST /kiosk/fingerprint/jobs/{id}/complete`.
 

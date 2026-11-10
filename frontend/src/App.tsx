@@ -49,8 +49,12 @@ const Scan = L(() => import('./pages/admin/Warehouse'), 'Scan')
 const Documents = L(() => import('./pages/admin/Warehouse'), 'Documents')
 const Counts = L(() => import('./pages/admin/Warehouse'), 'Counts')
 const Labels = L(() => import('./pages/admin/Warehouse'), 'Labels')
-const Employees = L(() => import('./pages/admin/Hr'), 'Employees')
-const HrReport = L(() => import('./pages/admin/Hr'), 'Report')
+const Employees = L(() => import('./pages/admin/HrEmployees'), 'Employees')
+const HrDashboard = L(() => import('./pages/admin/HrDash'), 'HrDashboard')
+const Attendance = L(() => import('./pages/admin/HrDash'), 'AttendancePage')
+const Kiosk = lazy(() => import('./pages/kiosk/Kiosk'))
+const LeavePublic = lazy(() => import('./pages/kiosk/LeavePublic'))
+const HrReport = L(() => import('./pages/admin/HrDash'), 'Report')
 const Leaves = L(() => import('./pages/admin/Hr'), 'Leaves')
 const Tasks = L(() => import('./pages/admin/Hr'), 'Tasks')
 const Devices = L(() => import('./pages/admin/Hr'), 'Devices')
@@ -95,6 +99,8 @@ export default function App() {
           </Route>
         </Route>
         <Route path="login" element={<Login />} />
+        <Route path="kiosk" element={<Kiosk />} />
+        <Route path="leave" element={<LeavePublic />} />
         <Route path="technician/apply" element={<TechApply />} />
         <Route path="s/:token" element={<SurveyPublic />} />
 
@@ -121,6 +127,8 @@ export default function App() {
           <Route path="warehouse/documents" element={<Documents />} />
           <Route path="warehouse/counts" element={<Counts />} />
           <Route path="warehouse/labels" element={<Labels />} />
+          <Route path="hr" element={<HrDashboard />} />
+          <Route path="hr/attendance" element={<Attendance />} />
           <Route path="hr/employees" element={<Employees />} />
           <Route path="hr/report" element={<HrReport />} />
           <Route path="hr/leaves" element={<Leaves />} />

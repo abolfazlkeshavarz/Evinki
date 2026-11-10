@@ -92,3 +92,6 @@ export function minutes(m: number): string {
   const h = Math.floor(m / 60)
   return (h ? fa(h) + ' ساعت و ' : '') + fa(m % 60) + ' دقیقه'
 }
+
+/** Persian digits for text that is not a plain number (times, dates, codes with leading zeros). */
+export const faDigits = (s: string | number | null | undefined) => String(s ?? '').replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])
