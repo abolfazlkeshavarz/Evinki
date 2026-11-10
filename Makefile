@@ -125,6 +125,9 @@ import-warehouse: ## old warehouse system:  make import-warehouse ARGS="-src sql
 import-guarantee: ## old guarantee system:   make import-guarantee ARGS="-src postgres://... -dry-run"
 	@./scripts/import-legacy.sh guarantee $(ARGS)
 
+migrate-attendance: ## one step from the file made by scripts/legacy/backup-attendance.sh:  make migrate-attendance FILE=attendance-migration-....tar.gz
+	@./scripts/legacy/import-attendance.sh "$(FILE)"
+
 import-attendance: ## old attendance system: make import-attendance ARGS="-src sqlite:/legacy/attendance.db -dry-run"
 	@./scripts/import-legacy.sh attendance $(ARGS)
 
@@ -145,4 +148,4 @@ test: ## unit tests + type check
 	cd backend && go vet ./... && go test ./...
 	cd frontend && npm run typecheck
 
-.PHONY: help env secrets bootstrap ssl deploy-check up up-prebuilt down restart ps logs health deploy-health update images-bundle images load-images deploy-remote rollback-remote add-domain remove-domain change-domain backup backup-remote-setup restore export migrate-import shell-db ctl create-admin reset-password admin-password seed-catalog seed-demo demo stats import-warehouse import-guarantee import-attendance smoke dev-db dev-api dev-web test
+.PHONY: help env secrets bootstrap ssl deploy-check up up-prebuilt down restart ps logs health deploy-health update images-bundle images load-images deploy-remote rollback-remote add-domain remove-domain change-domain backup backup-remote-setup restore export migrate-import shell-db ctl create-admin reset-password admin-password seed-catalog seed-demo demo stats import-warehouse import-guarantee import-attendance migrate-attendance smoke dev-db dev-api dev-web test

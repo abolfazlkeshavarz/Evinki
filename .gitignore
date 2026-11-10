@@ -1,8 +1,9 @@
 .env
 .env.bak-*
 backups/
-legacy/
+/legacy/
 dist/
 node_modules/
 *.exe
 uploads/
+attendance-migration-*.tar.gz

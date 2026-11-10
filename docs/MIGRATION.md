@@ -29,6 +29,20 @@ The command prints how many matched; unmatched ones are created as parts named l
 
 Add `-dry-run` to any of them to see the counts without saving.
 
+### Attendance system in two scripts
+
+```bash
+# on the OLD attendance server, in its project folder (copy the one file scripts/legacy/backup-attendance.sh there)
+bash backup-attendance.sh                      # -> attendance-migration-<date>.tar.gz (database + photos + SECRET_KEY)
+scp attendance-migration-*.tar.gz root@NEW:/opt/evinki/
+
+# on the NEW server
+cd /opt/evinki && ./scripts/legacy/import-attendance.sh attendance-migration-<date>.tar.gz   # make migrate-attendance FILE=...
+```
+
+The second script restores the old database into a scratch database, rehearses the import, asks for `YES`, imports,
+stores the old `SECRET_KEY` as `LEGACY_DEVICE_KEY_SECRET` (tablets keep working), removes the scratch database and checks health.
+
 ## 2. What is carried over
 
 | Old system | Imported | Notes |
