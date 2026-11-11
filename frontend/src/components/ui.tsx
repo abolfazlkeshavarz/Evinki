@@ -3,7 +3,8 @@ import { AlertTriangle, CheckCircle2, Info, Loader2, X } from 'lucide-react'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 import { ApiError, upload } from '../lib/api'
-import { isoToJalaliInput, parseJalali, latin, parseMoney, fa } from '../lib/format'
+import { latin, parseMoney, fa } from '../lib/format'
+import { JalaliPicker } from './JalaliPicker'
 import type { Tone } from '../lib/labels'
 
 // ───── badges & small displays ─────
@@ -105,22 +106,9 @@ export function NumInput({ value, onChange, ...rest }: { value: string | number;
   return <input {...rest} className={clsx('input num', rest.className)} inputMode="numeric" dir="ltr" value={value} onChange={(e) => onChange(latin(e.target.value))} />
 }
 
-/** Solar Hijri date field: shows 1405/03/17, stores ISO (YYYY-MM-DD). */
-export function JalaliInput({ value, onChange, placeholder = '۱۴۰۵/۰۱/۰۱' }: { value: string; onChange: (iso: string) => void; placeholder?: string }) {
-  const [text, setText] = useState(isoToJalaliInput(value))
-  const [bad, setBad] = useState(false)
-  useEffect(() => { setText(isoToJalaliInput(value)) }, [value])
-  return (
-    <input className={clsx('input num', bad && 'border-bad')} dir="ltr" inputMode="numeric" placeholder={placeholder} value={text}
-      onChange={(e) => {
-        const t = latin(e.target.value)
-        setText(t)
-        const iso = parseJalali(t)
-        setBad(!!t && !iso && t.length >= 8)
-        if (iso) onChange(iso)
-        if (!t) onChange('')
-      }} />
-  )
+/** Solar Hijri date field with a pop-up calendar (see JalaliPicker). Stores ISO dates (YYYY-MM-DD). */
+export function JalaliInput(props: { value: string; onChange: (iso: string) => void; placeholder?: string; clearable?: boolean; min?: string; max?: string }) {
+  return <JalaliPicker {...props} />
 }
 
 export function ImageUpload({ value, onChange, purpose = 'image' }: { value?: string; onChange: (url: string) => void; purpose?: string }) {

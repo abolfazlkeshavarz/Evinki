@@ -33,11 +33,11 @@ const Version = "1.0.0"
 func New(d *app.Deps) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID, middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
+	r.Use(timeoutExceptUpdate(60 * time.Second))
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   d.Cfg.CORSOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-Cart-Token", "X-Device-Key"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-Cart-Token", "X-Device-Key", "X-Filename", "X-Sha256"},
 		AllowCredentials: false,
 		MaxAge:           600,
 	}))
@@ -107,4 +107,19 @@ func noStore(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+// timeoutExceptUpdate is chi's request timeout, except for the big image-bundle upload (PUT .../admin/system/update),
+// which may legitimately take many minutes on a slow link.
+func timeoutExceptUpdate(d time.Duration) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		limited := middleware.Timeout(d)(next)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPut && strings.HasSuffix(r.URL.Path, "/admin/system/update") {
+				next.ServeHTTP(w, r)
+				return
+			}
+			limited.ServeHTTP(w, r)
+		})
+	}
 }

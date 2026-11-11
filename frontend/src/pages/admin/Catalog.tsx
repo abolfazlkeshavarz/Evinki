@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Badge } from '../../components/ui'
 import { FieldDef, ResourcePage } from '../../components/Resource'
+import { CodeGenerator } from '../../components/CodeFormula'
 import { ActionButton, Card, Modal } from '../../components/ui'
 import { del, post, put, get } from '../../lib/api'
 import { date, fa, toman } from '../../lib/format'
@@ -31,13 +32,33 @@ export function AdminProducts() {
     { key: 'summary', label: 'خلاصه', type: 'textarea' }, { key: 'description', label: 'توضیحات کامل', type: 'textarea' },
     { key: 'images', label: 'تصاویر', type: 'images' }, { key: 'specs', label: 'مشخصات فنی', type: 'kv' },
     { key: 'guarantee_months', label: 'مدت گارانتی (ماه)', type: 'int', half: true }, { key: 'golden_months', label: 'گارانتی طلایی (ماه)', type: 'int', half: true },
-    { key: 'code_format', label: 'قالب کد گارانتی', type: 'select', half: true, options: [{ value: 'simple', label: 'ساده' }, { value: 'evinki_vacuum', label: 'اوینکی (سال+پیشوند+ماه+سریال، با کدهای فصلی قدیم)' }, { value: 'jalali_encoded', label: 'رمزگذاری‌شده شمسی' }, { value: 'any', label: 'هر کدی' }] },
+    { key: 'code_format', label: 'قالب کد گارانتی', type: 'select', half: true, options: [{ value: 'simple', label: 'ساده' }, { value: 'evinki_vacuum', label: 'اوینکی (سال+پیشوند+ماه+سریال، با کدهای فصلی قدیم)' }, { value: 'jalali_encoded', label: 'رمزگذاری‌شده شمسی' }, { value: 'formula', label: 'فرمول (ساخته‌شده با سازنده زیر)' }, { value: 'any', label: 'هر کدی' }] },
     { key: 'code_prefix', label: 'پیشوند کد گارانتی', half: true, hint: 'مثلاً FZ' }, { key: 'code_pattern', label: 'الگوی دلخواه (Regex)', half: true },
+    { key: 'warranty_basis', label: 'شروع محاسبه گارانتی از', type: 'select', hint: 'تاریخ تولید از روی کد خوانده می‌شود؛ اگر کد تاریخ نداشته باشد، از تاریخ خرید حساب می‌شود.', options: [{ value: 'manufacture', label: 'تاریخ تولید (پیش‌فرض)' }, { value: 'purchase', label: 'تاریخ خرید' }, { value: 'best', label: 'بهترین حالت برای مشتری (دیرتر از این دو)' }] },
+    { key: 'code_formula', label: 'فرمول ساخت کد گارانتی', type: 'formula', hint: 'اگر فرمول بسازید، جایگزین قالب و پیشوند بالا می‌شود.' },
   ]
-  return <ResourcePage title="محصولات" path="/admin/products" fields={fields} canWrite={['catalog.manage']} canDelete={['catalog.delete']} newRow={{ is_published: true, guarantee_months: 18, golden_months: 3, code_format: 'simple', images: [], specs: {}, price: 0, stock_qty: 0 }}
+  const [gen, setGen] = useState<any>(null)
+  const [merge, setMerge] = useState<any>(null)
+  return <><ResourcePage title="محصولات" path="/admin/products" rowActions={(r) => <>{r.code_formula?.length > 0 && <button className="btn-soft btn-sm" onClick={() => setGen(r)}>تولید کد</button>}<button className="btn-ghost btn-sm" onClick={() => setMerge(r)}>ادغام</button></>} fields={fields} canWrite={['catalog.manage']} canDelete={['catalog.delete']} newRow={{ is_published: true, guarantee_months: 18, golden_months: 3, code_format: 'simple', warranty_basis: 'manufacture', code_formula: [], images: [], specs: {}, price: 0, stock_qty: 0 }}
     columns={[{ head: 'محصول', cell: (r) => <div><b>{r.name}</b><div className="text-xs text-soft" dir="ltr">{r.sku}</div></div> }, { head: 'دسته', cell: (r) => r.category_name || '—' },
       { head: 'قیمت', cell: (r) => (r.price_on_request || !r.price ? <Badge>تماس بگیرید</Badge> : <span className="num">{toman(r.price)}</span>) }, { head: 'موجودی', cell: (r) => fa(r.stock_qty) },
       { head: 'گارانتی', cell: (r) => `${fa(r.guarantee_months)}+${fa(r.golden_months)} ماه` }, { head: 'فروشگاه', cell: (r) => yesNo(r.is_published) }]} />
+    <CodeGenerator product={gen} onClose={() => setGen(null)} />
+    <MergeProduct product={merge} onClose={() => setMerge(null)} />
+  </>
+}
+
+/** Two entries for the same device (e.g. the shop's FZ530 and the guarantee system's FZ530): everything moves to the one you keep. */
+function MergeProduct({ product, onClose }: { product: any; onClose: () => void }) {
+  const all = useGet<any>(product ? '/admin/products?limit=500' : null)
+  const inv = useInvalidate()
+  const [into, setInto] = useState(0)
+  return (
+    <Modal open={!!product} onClose={onClose} title={`ادغام «${product?.name ?? ''}» در محصول دیگر`} footer={<ActionButton className="btn-primary" disabled={!into} confirm="همه گارانتی‌ها، تعمیرها و سفارش‌های این محصول به محصول مقصد منتقل و این محصول حذف می‌شود. ادامه می‌دهید؟" onClick={async () => { await post(`/admin/products/${product.id}/merge`, { into }); inv('/admin'); setInto(0); onClose() }}>ادغام</ActionButton>}>
+      <p className="mb-3 text-sm leading-7 text-soft">محصول مقصد را انتخاب کنید. گارانتی‌ها، تعمیرها، سفارش‌ها و سبدها به آن منتقل می‌شوند؛ اطلاعات خالی مقصد (عکس، مشخصات، قالب کد) از این محصول پر می‌شود و این محصول بایگانی می‌شود.</p>
+      <select className="input" value={into} onChange={(e) => setInto(+e.target.value)}><option value={0}>انتخاب محصول مقصد…</option>{all.data?.items.filter((p: any) => p.id !== product?.id).map((p: any) => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}</select>
+    </Modal>
+  )
 }
 
 export function Parts() {

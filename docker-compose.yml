@@ -22,7 +22,10 @@ services:
 
   api:
     image: evinki-api:latest
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        GOPROXY: ${GOPROXY:-https://proxy.golang.org,direct}
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
@@ -41,7 +44,9 @@ services:
       SMS_USERNAME: ${SMS_USERNAME:-}
       SMS_PASSWORD: ${SMS_PASSWORD:-}
       LEGACY_DEVICE_KEY_SECRET: ${LEGACY_DEVICE_KEY_SECRET:-}
-    volumes: [uploads:/data/uploads]
+      UPDATES_DIR: /data/updates
+    # uploaded image bundles wait in the "updates" volume for scripts/updater.sh (which reads it from the host)
+    volumes: [uploads:/data/uploads, updates:/data/updates]
     # lets importers reach a database on this host as host.docker.internal
     extra_hosts: ["host.docker.internal:host-gateway"]
 
@@ -56,3 +61,4 @@ services:
 volumes:
   db_data:
   uploads:
+  updates:

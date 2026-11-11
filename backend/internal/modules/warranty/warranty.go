@@ -26,6 +26,7 @@ func Mount(r chi.Router, d *app.Deps) {
 	m := &mod{d}
 
 	// public: anyone with a code can look it up or register it
+	m.mountExtras(r)
 	r.Get("/public/guarantees/check", httpx.H(m.publicCheck))
 	r.Post("/public/guarantees/validate", httpx.H(m.validate))
 	r.Post("/public/guarantees/register", httpx.H(m.publicRegister))
@@ -67,31 +68,36 @@ func Mount(r chi.Router, d *app.Deps) {
 // ───────── views ─────────
 
 type G struct {
-	ID               int64      `db:"id" json:"id"`
-	Code             string     `db:"code" json:"code"`
-	Status           string     `db:"status" json:"status"`
-	Source           string     `db:"source" json:"source"`
-	PurchaseDate     time.Time  `db:"purchase_date" json:"purchase_date"`
-	ExpiryDate       time.Time  `db:"expiry_date" json:"expiry_date"`
-	GoldenStartDate  *time.Time `db:"golden_start_date" json:"golden_start_date"`
-	GoldenExpiryDate *time.Time `db:"golden_expiry_date" json:"golden_expiry_date"`
-	Notes            string     `db:"notes" json:"notes"`
-	InvoiceFile      string     `db:"invoice_file" json:"invoice_file"`
-	CardFile         string     `db:"card_file" json:"card_file"`
-	ApprovedAt       *time.Time `db:"approved_at" json:"approved_at"`
-	CreatedAt        time.Time  `db:"created_at" json:"created_at"`
-	CustomerID       int64      `db:"customer_id" json:"customer_id"`
-	CustomerName     string     `db:"customer_name" json:"customer_name"`
-	CustomerPhone    string     `db:"customer_phone" json:"customer_phone"`
-	CustomerCity     string     `db:"customer_city" json:"customer_city"`
-	ProductID        int64      `db:"product_id" json:"product_id"`
-	ProductName      string     `db:"product_name" json:"product_name"`
-	DaysRemaining    int        `db:"days_remaining" json:"days_remaining"`
-	Tier             string     `db:"tier" json:"tier"`
+	ID                int64      `db:"id" json:"id"`
+	Code              string     `db:"code" json:"code"`
+	Status            string     `db:"status" json:"status"`
+	Source            string     `db:"source" json:"source"`
+	PurchaseDate      time.Time  `db:"purchase_date" json:"purchase_date"`
+	ExpiryDate        time.Time  `db:"expiry_date" json:"expiry_date"`
+	GoldenStartDate   *time.Time `db:"golden_start_date" json:"golden_start_date"`
+	GoldenExpiryDate  *time.Time `db:"golden_expiry_date" json:"golden_expiry_date"`
+	Notes             string     `db:"notes" json:"notes"`
+	InvoiceFile       string     `db:"invoice_file" json:"invoice_file"`
+	CardFile          string     `db:"card_file" json:"card_file"`
+	ManufactureDate   *time.Time `db:"manufacture_date" json:"manufacture_date"`
+	ManufactureApprox bool       `db:"manufacture_approx" json:"manufacture_approx"`
+	ExpiryBasis       string     `db:"expiry_basis" json:"expiry_basis"`
+	ExpiryEditedAt    *time.Time `db:"expiry_edited_at" json:"expiry_edited_at"`
+	ExpiryEditNote    string     `db:"expiry_edit_note" json:"expiry_edit_note"`
+	ApprovedAt        *time.Time `db:"approved_at" json:"approved_at"`
+	CreatedAt         time.Time  `db:"created_at" json:"created_at"`
+	CustomerID        int64      `db:"customer_id" json:"customer_id"`
+	CustomerName      string     `db:"customer_name" json:"customer_name"`
+	CustomerPhone     string     `db:"customer_phone" json:"customer_phone"`
+	CustomerCity      string     `db:"customer_city" json:"customer_city"`
+	ProductID         int64      `db:"product_id" json:"product_id"`
+	ProductName       string     `db:"product_name" json:"product_name"`
+	DaysRemaining     int        `db:"days_remaining" json:"days_remaining"`
+	Tier              string     `db:"tier" json:"tier"`
 }
 
 const gSel = `SELECT g.id,g.code,g.status,g.source,g.purchase_date,g.expiry_date,g.golden_start_date,g.golden_expiry_date,
-	g.notes,g.invoice_file,g.card_file,g.approved_at,g.created_at,
+	g.notes,g.invoice_file,g.card_file,g.manufacture_date,g.manufacture_approx,g.expiry_basis,g.expiry_edited_at,g.expiry_edit_note,g.approved_at,g.created_at,
 	c.id AS customer_id,c.full_name AS customer_name,c.phone AS customer_phone,c.city AS customer_city,
 	p.id AS product_id,p.name AS product_name,
 	(g.expiry_date - CURRENT_DATE)::int AS days_remaining,
@@ -146,23 +152,31 @@ func (m *mod) get(w http.ResponseWriter, r *http.Request) error {
 // ───────── public ─────────
 
 type rules struct {
-	ID      int64  `db:"id"`
-	Name    string `db:"name"`
-	Months  int    `db:"guarantee_months"`
-	Golden  int    `db:"golden_months"`
-	Format  string `db:"code_format"`
-	Prefix  string `db:"code_prefix"`
-	Pattern string `db:"code_pattern"`
+	ID      int64           `db:"id"`
+	Name    string          `db:"name"`
+	Months  int             `db:"guarantee_months"`
+	Golden  int             `db:"golden_months"`
+	Format  string          `db:"code_format"`
+	Prefix  string          `db:"code_prefix"`
+	Pattern string          `db:"code_pattern"`
+	Basis   string          `db:"warranty_basis"`
+	Formula json.RawMessage `db:"code_formula"`
+}
+
+func (r rules) pr() ProductRules {
+	f := parseFormula(r.Formula)
+	return ProductRules{Format: r.Format, Prefix: r.Prefix, Pattern: r.Pattern, Formula: f}
 }
 
 func productRules(ctx context.Context, q db.Q, id int64) (rules, error) {
-	return db.One[rules](ctx, q, `SELECT id,name,guarantee_months,golden_months,code_format,code_prefix,code_pattern FROM products WHERE id=$1 AND deleted_at IS NULL AND is_active`, id)
+	return db.One[rules](ctx, q, `SELECT id,name,guarantee_months,golden_months,code_format,code_prefix,code_pattern,warranty_basis,code_formula FROM products WHERE id=$1 AND deleted_at IS NULL AND is_active`, id)
 }
 
 func (m *mod) validate(w http.ResponseWriter, r *http.Request) error {
 	var in struct {
-		ProductID int64  `json:"product_id"`
-		Code      string `json:"code"`
+		ProductID    int64  `json:"product_id"`
+		Code         string `json:"code"`
+		PurchaseDate string `json:"purchase_date"`
 	}
 	if err := httpx.Decode(r, &in); err != nil {
 		return err
@@ -171,10 +185,24 @@ func (m *mod) validate(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return httpx.BadRequest("محصول پیدا نشد")
 	}
-	res := CheckCode(ProductRules{p.Format, p.Prefix, p.Pattern}, httpx.Digits(in.Code))
+	res := CheckCode(p.pr(), httpx.Digits(in.Code))
 	if res.Valid {
 		if n, _ := db.Scalar[int](r.Context(), m.DB, `SELECT COUNT(*) FROM guarantees WHERE code=$1 AND deleted_at IS NULL AND status IN ('pending','approved','renewed','expired')`, strings.TrimSpace(httpx.Digits(in.Code))); n > 0 {
 			res.CanRegister, res.Message, res.MessageLevel = false, "این کد قبلاً ثبت شده است", "error"
+		}
+	}
+	if res.Valid && in.PurchaseDate != "" {
+		if pd, e := parseDate(in.PurchaseDate); e == nil {
+			mfg, approx := mfgFromCode(p.pr(), strings.TrimSpace(httpx.Digits(in.Code)))
+			g := computePeriods(pd, mfg, approx, p.Months, p.Golden, p.Basis)
+			res.ExpiryPreview, res.GuaranteeMonths, res.Basis = g.expiry.Format("2006-01-02"), p.Months, g.basis
+			if g.goldenEnd != nil {
+				res.GoldenPreview = g.goldenEnd.Format("2006-01-02")
+			}
+			if !g.expiry.After(pd) {
+				res.Message += " — توجه: بر پایه تاریخ تولید، مدت گارانتی این دستگاه به پایان رسیده است"
+				res.MessageLevel = "warning"
+			}
 		}
 	}
 	httpx.OK(w, res)
@@ -197,7 +225,7 @@ func (m *mod) publicCheck(w http.ResponseWriter, r *http.Request) error {
 	}
 	httpx.OK(w, map[string]any{"found": true, "code": g.Code, "status": g.Status, "tier": g.Tier,
 		"product_name": g.ProductName, "purchase_date": g.PurchaseDate, "expiry_date": g.ExpiryDate,
-		"golden_expiry_date": g.GoldenExpiryDate, "days_remaining": g.DaysRemaining,
+		"golden_expiry_date": g.GoldenExpiryDate, "manufacture_date": g.ManufactureDate, "days_remaining": g.DaysRemaining,
 		"owner": maskName(g.CustomerName)})
 	return nil
 }
@@ -262,7 +290,7 @@ func (m *mod) register(w http.ResponseWriter, r *http.Request, in regIn, uid *in
 	if err != nil {
 		return httpx.BadRequest("محصول پیدا نشد")
 	}
-	chk := CheckCode(ProductRules{p.Format, p.Prefix, p.Pattern}, in.Code)
+	chk := CheckCode(p.pr(), in.Code)
 	if !chk.Valid || !chk.CanRegister {
 		return httpx.BadRequest(chk.Message)
 	}
@@ -276,10 +304,11 @@ func (m *mod) register(w http.ResponseWriter, r *http.Request, in regIn, uid *in
 		if e != nil {
 			return e
 		}
-		g := computePeriods(purchase, p.Months, p.Golden)
-		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,status,source,invoice_file,card_file,created_by)
-			VALUES($1,$2,$3,$4,$5,$6,$7,'pending',$8,$9,$10,$11) RETURNING id`,
-			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, source, in.InvoiceFile, in.CardFile, uid)
+		mfg, approx := mfgFromCode(p.pr(), in.Code)
+		g := computePeriods(purchase, mfg, approx, p.Months, p.Golden, p.Basis)
+		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,status,source,invoice_file,card_file,created_by,manufacture_date,manufacture_approx,expiry_basis)
+			VALUES($1,$2,$3,$4,$5,$6,$7,'pending',$8,$9,$10,$11,$12,$13,$14) RETURNING id`,
+			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, source, in.InvoiceFile, in.CardFile, uid, g.mfg, g.approx, g.basis)
 		return e
 	})
 	if db.IsUnique(err) {
@@ -299,23 +328,6 @@ func (m *mod) mine(w http.ResponseWriter, r *http.Request) error {
 	}
 	httpx.OK(w, items)
 	return nil
-}
-
-// ───────── periods ─────────
-
-type periods struct {
-	purchase, expiry         time.Time
-	goldenStart, goldenEnd *time.Time
-}
-
-// computePeriods: expiry = purchase + N months; the golden window runs from purchase.
-func computePeriods(purchase time.Time, months, golden int) periods {
-	p := periods{purchase: purchase, expiry: purchase.AddDate(0, months, 0)}
-	if golden > 0 {
-		s, e := purchase, purchase.AddDate(0, golden, 0)
-		p.goldenStart, p.goldenEnd = &s, &e
-	}
-	return p
 }
 
 func parseDate(s string) (time.Time, error) {
@@ -354,19 +366,24 @@ func EnsureCustomer(ctx context.Context, q db.Q, name, phone, nid, province, cit
 // carry a serial number, so a customer who bought online never has to register.
 func IssueForOrder(ctx context.Context, q db.Q, orderID int64) error {
 	type line struct {
-		ItemID int64  `db:"id"`
-		PID    int64  `db:"product_id"`
-		Serial string `db:"serial_code"`
-		Months int    `db:"guarantee_months"`
-		Golden int    `db:"golden_months"`
-		UID    int64  `db:"user_id"`
-		Name   string `db:"full_name"`
-		Phone  string `db:"phone"`
-		Addr   string `db:"addr"`
-		City   string `db:"city"`
-		Prov   string `db:"province"`
+		ItemID  int64           `db:"id"`
+		PID     int64           `db:"product_id"`
+		Serial  string          `db:"serial_code"`
+		Months  int             `db:"guarantee_months"`
+		Golden  int             `db:"golden_months"`
+		Basis   string          `db:"warranty_basis"`
+		Fmt     string          `db:"code_format"`
+		Prefix  string          `db:"code_prefix"`
+		Pat     string          `db:"code_pattern"`
+		Formula json.RawMessage `db:"code_formula"`
+		UID     int64           `db:"user_id"`
+		Name    string          `db:"full_name"`
+		Phone   string          `db:"phone"`
+		Addr    string          `db:"addr"`
+		City    string          `db:"city"`
+		Prov    string          `db:"province"`
 	}
-	lines, err := db.All[line](ctx, q, `SELECT oi.id,oi.product_id,oi.serial_code,p.guarantee_months,p.golden_months,o.user_id,
+	lines, err := db.All[line](ctx, q, `SELECT oi.id,oi.product_id,oi.serial_code,p.guarantee_months,p.golden_months,p.warranty_basis,p.code_format,p.code_prefix,p.code_pattern,p.code_formula,o.user_id,
 			COALESCE(NULLIF(o.address->>'recipient',''),u.full_name) AS full_name, COALESCE(NULLIF(u.phone,''),o.address->>'phone') AS phone,
 			COALESCE(o.address->>'address','') AS addr, COALESCE(o.address->>'city','') AS city, COALESCE(o.address->>'province','') AS province
 		FROM order_items oi JOIN orders o ON o.id=oi.order_id JOIN users u ON u.id=o.user_id JOIN products p ON p.id=oi.product_id
@@ -381,11 +398,12 @@ func IssueForOrder(ctx context.Context, q db.Q, orderID int64) error {
 		if err != nil {
 			return err
 		}
-		g := computePeriods(today, l.Months, l.Golden)
-		if _, err = q.Exec(ctx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,status,source,order_item_id,approved_at)
-			SELECT $1,$2,$3,$4,$5,$6,$7,'approved','order',$8,NOW()
+		mfg, approx := mfgFromCode(ProductRules{Format: l.Fmt, Prefix: l.Prefix, Pattern: l.Pat, Formula: parseFormula(l.Formula)}, l.Serial)
+		g := computePeriods(today, mfg, approx, l.Months, l.Golden, l.Basis)
+		if _, err = q.Exec(ctx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,status,source,order_item_id,approved_at,manufacture_date,manufacture_approx,expiry_basis)
+			SELECT $1,$2,$3,$4,$5,$6,$7,'approved','order',$8,NOW(),$9,$10,$11
 			WHERE NOT EXISTS (SELECT 1 FROM guarantees WHERE code=$1 AND deleted_at IS NULL AND status IN ('pending','approved','renewed','expired'))`,
-			l.Serial, cid, l.PID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, l.ItemID); err != nil {
+			l.Serial, cid, l.PID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, l.ItemID, g.mfg, g.approx, g.basis); err != nil {
 			return err
 		}
 	}
@@ -395,7 +413,11 @@ func IssueForOrder(ctx context.Context, q db.Q, orderID int64) error {
 // ───────── admin writes ─────────
 
 func (m *mod) create(w http.ResponseWriter, r *http.Request) error {
-	var in regIn
+	var in struct {
+		regIn
+		ManufactureDate string `json:"manufacture_date"`
+		ExpiryDate      string `json:"expiry_date"`
+	}
 	if err := httpx.Decode(r, &in); err != nil {
 		return err
 	}
@@ -413,6 +435,28 @@ func (m *mod) create(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return httpx.BadRequest("تاریخ خرید نامعتبر است")
 	}
+	// the manufacture date: typed by the admin, otherwise read from the code
+	mfg, approx := mfgFromCode(p.pr(), in.Code)
+	if in.ManufactureDate != "" {
+		t, e := parseDate(in.ManufactureDate)
+		if e != nil {
+			return httpx.BadRequest("تاریخ تولید نامعتبر است")
+		}
+		mfg, approx = &t, false
+	}
+	g := computePeriods(purchase, mfg, approx, p.Months, p.Golden, p.Basis)
+	edited := false
+	if in.ExpiryDate != "" {
+		e, err := parseDate(in.ExpiryDate)
+		if err != nil || e.Before(purchase) {
+			return httpx.BadRequest("تاریخ انقضا نامعتبر است یا قبل از تاریخ خرید است")
+		}
+		g.expiry, edited = e, true
+		if g.goldenEnd != nil && g.goldenEnd.After(e) {
+			ge := e
+			g.goldenEnd = &ge
+		}
+	}
 	by := auth.From(ctx).UserID
 	var id int64
 	err = m.DB.Tx(ctx, func(tx pgx.Tx) error {
@@ -420,10 +464,10 @@ func (m *mod) create(w http.ResponseWriter, r *http.Request) error {
 		if e != nil {
 			return e
 		}
-		g := computePeriods(purchase, p.Months, p.Golden)
 		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO guarantees(code,customer_id,product_id,purchase_date,expiry_date,golden_start_date,golden_expiry_date,
-			status,source,invoice_file,card_file,created_by,approved_by,approved_at) VALUES($1,$2,$3,$4,$5,$6,$7,'approved','admin',$8,$9,$10,$10,NOW()) RETURNING id`,
-			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, in.InvoiceFile, in.CardFile, by)
+			status,source,invoice_file,card_file,created_by,approved_by,approved_at,manufacture_date,manufacture_approx,expiry_basis,expiry_edited_at)
+			VALUES($1,$2,$3,$4,$5,$6,$7,'approved','admin',$8,$9,$10,$10,NOW(),$11,$12,$13,CASE WHEN $14 THEN NOW() END) RETURNING id`,
+			in.Code, cid, p.ID, g.purchase, g.expiry, g.goldenStart, g.goldenEnd, in.InvoiceFile, in.CardFile, by, g.mfg, g.approx, g.basis, edited)
 		return e
 	})
 	if db.IsUnique(err) {
@@ -433,34 +477,100 @@ func (m *mod) create(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	m.Audit.Log(r, "guarantee.create", "guarantee", id, in.Code)
-	g, _ := db.One[G](ctx, m.DB, gSel+` WHERE g.id=$1`, id)
-	httpx.Created(w, g)
+	gg, _ := db.One[G](ctx, m.DB, gSel+` WHERE g.id=$1`, id)
+	httpx.Created(w, gg)
 	return nil
 }
 
+// patch edits a guarantee. Besides notes/files it can change the purchase, manufacture and EXPIRY dates by hand
+// (the change is stamped and audited) or recalculate everything from the product's rules.
 func (m *mod) patch(w http.ResponseWriter, r *http.Request) error {
 	id, err := httpx.ID(r, "id")
 	if err != nil {
 		return err
 	}
 	var in struct {
-		Notes        *string `json:"notes"`
-		PurchaseDate *string `json:"purchase_date"`
-		ExpiryDate   *string `json:"expiry_date"`
-		InvoiceFile  *string `json:"invoice_file"`
-		CardFile     *string `json:"card_file"`
+		Notes           *string `json:"notes"`
+		PurchaseDate    *string `json:"purchase_date"`
+		ExpiryDate      *string `json:"expiry_date"`
+		ManufactureDate *string `json:"manufacture_date"`
+		InvoiceFile     *string `json:"invoice_file"`
+		CardFile        *string `json:"card_file"`
+		ExpiryNote      string  `json:"expiry_note"`
+		Recalculate     bool    `json:"recalculate"`
 	}
 	if err := httpx.Decode(r, &in); err != nil {
 		return err
 	}
-	_, err = m.DB.Exec(r.Context(), `UPDATE guarantees SET notes=COALESCE($2,notes), invoice_file=COALESCE($3,invoice_file), card_file=COALESCE($6,card_file),
-		purchase_date=COALESCE($4::date,purchase_date), expiry_date=COALESCE($5::date,expiry_date), updated_at=NOW()
-		WHERE id=$1 AND deleted_at IS NULL`, id, in.Notes, in.InvoiceFile, digitsPtr(in.PurchaseDate), digitsPtr(in.ExpiryDate), in.CardFile)
+	ctx := r.Context()
+	cur, err := db.One[G](ctx, m.DB, gSel+` WHERE g.id=$1 AND g.deleted_at IS NULL`, id)
 	if err != nil {
 		return err
 	}
-	m.Audit.Log(r, "guarantee.update", "guarantee", id, "")
-	g, err := db.One[G](r.Context(), m.DB, gSel+` WHERE g.id=$1`, id)
+	purchase, mfg, approx, expiry := cur.PurchaseDate, cur.ManufactureDate, cur.ManufactureApprox, cur.ExpiryDate
+	gs, ge, basis := cur.GoldenStartDate, cur.GoldenExpiryDate, cur.ExpiryBasis
+	edited := false
+	if in.PurchaseDate != nil && *in.PurchaseDate != "" {
+		if purchase, err = parseDate(*in.PurchaseDate); err != nil {
+			return httpx.BadRequest("تاریخ خرید نامعتبر است")
+		}
+	}
+	if in.ManufactureDate != nil {
+		if *in.ManufactureDate == "" {
+			mfg = nil
+		} else {
+			t, e := parseDate(*in.ManufactureDate)
+			if e != nil {
+				return httpx.BadRequest("تاریخ تولید نامعتبر است")
+			}
+			mfg, approx = &t, false
+		}
+	}
+	if in.Recalculate {
+		p, e := productRules(ctx, m.DB, cur.ProductID)
+		if e != nil {
+			p, e = db.One[rules](ctx, m.DB, `SELECT id,name,guarantee_months,golden_months,code_format,code_prefix,code_pattern,warranty_basis,code_formula FROM products WHERE id=$1`, cur.ProductID)
+			if e != nil {
+				return e
+			}
+		}
+		if mfg == nil {
+			mfg, approx = mfgFromCode(p.pr(), cur.Code)
+		}
+		c := computePeriods(purchase, mfg, approx, p.Months, p.Golden, p.Basis)
+		expiry, gs, ge, basis, mfg, approx = c.expiry, c.goldenStart, c.goldenEnd, c.basis, c.mfg, c.approx
+		edited = false
+	}
+	if in.ExpiryDate != nil && *in.ExpiryDate != "" {
+		if expiry, err = parseDate(*in.ExpiryDate); err != nil {
+			return httpx.BadRequest("تاریخ انقضا نامعتبر است")
+		}
+		edited = true
+	}
+	if expiry.Before(purchase) {
+		return httpx.BadRequest("تاریخ انقضا نباید قبل از تاریخ خرید باشد")
+	}
+	if ge != nil && ge.After(expiry) {
+		e := expiry
+		ge = &e
+	}
+	_, err = m.DB.Exec(ctx, `UPDATE guarantees SET notes=COALESCE($2,notes), invoice_file=COALESCE($3,invoice_file), card_file=COALESCE($4,card_file),
+		purchase_date=$5, expiry_date=$6, manufacture_date=$7, manufacture_approx=$8, expiry_basis=$9, golden_start_date=$10, golden_expiry_date=$11,
+		expiry_edited_at=CASE WHEN $12 THEN NOW() WHEN $13 THEN NULL ELSE expiry_edited_at END,
+		expiry_edit_note=CASE WHEN $12 THEN $14 WHEN $13 THEN '' ELSE expiry_edit_note END, updated_at=NOW()
+		WHERE id=$1 AND deleted_at IS NULL`, id, in.Notes, in.InvoiceFile, in.CardFile, purchase, expiry, mfg, approx, basis, gs, ge, edited, in.Recalculate, in.ExpiryNote)
+	if err != nil {
+		return err
+	}
+	detail := ""
+	if !expiry.Equal(cur.ExpiryDate) {
+		detail = "expiry " + cur.ExpiryDate.Format("2006-01-02") + " -> " + expiry.Format("2006-01-02")
+		if in.ExpiryNote != "" {
+			detail += " (" + in.ExpiryNote + ")"
+		}
+	}
+	m.Audit.Log(r, "guarantee.update", "guarantee", id, detail)
+	g, err := db.One[G](ctx, m.DB, gSel+` WHERE g.id=$1`, id)
 	if err != nil {
 		return err
 	}

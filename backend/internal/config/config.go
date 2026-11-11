@@ -20,6 +20,7 @@ type Config struct {
 	RefreshTTL time.Duration
 
 	UploadDir     string
+	UpdatesDir    string // where uploaded image bundles wait for the host-side updater (scripts/updater.sh)
 	MaxUploadSize int64
 	CORSOrigins   []string
 
@@ -54,6 +55,7 @@ func Load() (*Config, error) {
 		RefreshTTL: time.Duration(geti("REFRESH_TTL_DAYS", 30)) * 24 * time.Hour,
 
 		UploadDir:     get("UPLOAD_DIR", "./uploads"),
+		UpdatesDir:    get("UPDATES_DIR", "./updates"),
 		MaxUploadSize: int64(geti("MAX_UPLOAD_MB", 10)) << 20,
 		CORSOrigins:   splitCSV(get("CORS_ORIGINS", "http://localhost:5173")),
 

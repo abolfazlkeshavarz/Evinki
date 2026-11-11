@@ -49,6 +49,7 @@ const Scan = L(() => import('./pages/admin/Warehouse'), 'Scan')
 const Documents = L(() => import('./pages/admin/Warehouse'), 'Documents')
 const Counts = L(() => import('./pages/admin/Warehouse'), 'Counts')
 const Labels = L(() => import('./pages/admin/Warehouse'), 'Labels')
+const GuaranteeTrash = L(() => import('./pages/admin/Guarantees'), 'TrashPage')
 const Employees = L(() => import('./pages/admin/HrEmployees'), 'Employees')
 const HrDashboard = L(() => import('./pages/admin/HrDash'), 'HrDashboard')
 const Attendance = L(() => import('./pages/admin/HrDash'), 'AttendancePage')
@@ -65,6 +66,7 @@ const SurveyResults = L(() => import('./pages/admin/Surveys'), 'SurveyResults')
 const Users = L(() => import('./pages/admin/System'), 'Users')
 const Roles = L(() => import('./pages/admin/System'), 'Roles')
 const Sms = L(() => import('./pages/admin/System'), 'Sms')
+const SystemUpdate = L(() => import('./pages/admin/SystemUpdate'), 'SystemUpdate')
 const SettingsPage = L(() => import('./pages/admin/System'), 'SettingsPage')
 const Audit = L(() => import('./pages/admin/System'), 'Audit')
 
@@ -115,6 +117,7 @@ export default function App() {
           <Route path="guarantees" element={<Guarantees />} />
           <Route path="guarantees/:id" element={<GuaranteeDetail />} />
           <Route path="customers" element={<Customers />} />
+          <Route path="trash" element={<GuaranteeTrash />} />
           <Route path="service" element={<ServicePipeline />} />
           <Route path="repairs/:id" element={<RepairDetail />} />
           <Route path="part-requests" element={<PartRequests />} />
@@ -143,6 +146,7 @@ export default function App() {
           <Route path="roles" element={<Roles />} />
           <Route path="sms" element={<Sms />} />
           <Route path="settings" element={<SettingsPage />} />
+          <Route path="system-update" element={<SystemUpdate />} />
           <Route path="audit" element={<Audit />} />
         </Route>
 

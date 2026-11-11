@@ -84,6 +84,11 @@ func (im *Importer) gCategories(src *sql.DB) error {
 	}
 	for _, r := range rows {
 		_, _, err := im.ensure("category", r["id"], func() (int64, error) {
+			if id, ok := im.findCategoryByName(S(r["name"])); ok { // e.g. "جاروبرقی خانگی" already exists in the shop catalogue
+				im.logf("   category %q merged with the existing one", S(r["name"]))
+				im.count("category (merged)")
+				return id, nil
+			}
 			return im.one(`INSERT INTO categories(slug,name,description,is_active) VALUES($1,$2,$3,$4) RETURNING id`,
 				fmt.Sprintf("legacy-cat-%v", I(r["id"])), S(r["name"]), S(r["description"]), B(r["is_active"]))
 		})
@@ -112,6 +117,16 @@ func (im *Importer) gProducts(src *sql.DB) error {
 			if gm == 0 {
 				gm = 12
 			}
+			// the same device may already be in the shop catalogue (FZ530): merge instead of duplicating
+			if tid, ok := im.findProductByModel(ModelKey(S(r["name"]), S(r["code_prefix"]), S(r["sku"]))); ok {
+				im.logf("   product %q merged into shop product #%d", S(r["name"]), tid)
+				im.count("product (merged into shop product)")
+				return tid, im.exec(`UPDATE products SET guarantee_months=$2, golden_months=$3,
+					code_format=CASE WHEN code_format='simple' THEN $4 ELSE code_format END,
+					code_prefix=CASE WHEN code_prefix='' THEN $5 ELSE code_prefix END,
+					code_pattern=CASE WHEN code_pattern='' THEN $6 ELSE code_pattern END,
+					category_id=COALESCE(category_id,$7), updated_at=NOW() WHERE id=$1`, tid, gm, golden, format, S(r["code_prefix"]), S(r["code_pattern"]), cat)
+			}
 			return im.one(`INSERT INTO products(category_id,sku,slug,name,description,is_active,is_published,price_on_request,guarantee_months,golden_months,code_format,code_prefix,code_pattern)
 				VALUES($1,$2,$3,$4,$5,$6,FALSE,TRUE,$7,$8,$9,$10,$11) RETURNING id`,
 				cat, fmt.Sprintf("LEG-%d", I(r["id"])), fmt.Sprintf("legacy-%d", I(r["id"])), S(r["name"]), S(r["description"]), B(r["is_active"]),
@@ -121,7 +136,7 @@ func (im *Importer) gProducts(src *sql.DB) error {
 			return err
 		}
 	}
-	im.logf("   note: imported products are unpublished in the shop until you review them")
+	im.logf("   note: imported products without a shop twin are unpublished until you review them")
 	return nil
 }
 

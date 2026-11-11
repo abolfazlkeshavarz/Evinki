@@ -58,6 +58,8 @@ func Mount(r chi.Router, d *app.Deps) {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.Require(auth.PTechniciansMgt))
 		r.Post("/admin/technicians", httpx.H(m.createTechnician))
+		r.Post("/admin/technicians-import", httpx.H(m.importTechnicians))
+		r.Get("/admin/technicians-import/template", httpx.H(m.importTemplate))
 		r.Patch("/admin/technicians/{id}", httpx.H(m.patchTechnician))
 		r.Post("/admin/technicians/{id}/review", httpx.H(m.reviewTechnician))
 		r.Post("/admin/technicians/{id}/ledger", httpx.H(m.ledgerEntry))
@@ -864,31 +866,8 @@ func (m *mod) createTechnician(w http.ResponseWriter, r *http.Request) error {
 	if err := httpx.Decode(r, &in); err != nil {
 		return err
 	}
-	in.Phone = httpx.Phone(in.Phone)
-	if in.Username == "" {
-		in.Username = in.Phone
-	}
-	if strings.TrimSpace(in.FullName) == "" || in.Username == "" || len(in.Password) < 8 {
-		return httpx.BadRequest("نام، نام کاربری و گذرواژه حداقل ۸ نویسه لازم است")
-	}
-	h, err := auth.HashPassword(in.Password)
-	if err != nil {
-		return err
-	}
-	ctx := r.Context()
-	var id int64
-	err = m.DB.Tx(ctx, func(tx pgx.Tx) error {
-		var e error
-		id, e = db.Scalar[int64](ctx, tx, `INSERT INTO users(username,full_name,phone,password_hash,must_change_password) VALUES($1,$2,$3,$4,TRUE) RETURNING id`, in.Username, in.FullName, in.Phone, h)
-		if e != nil {
-			return e
-		}
-		if _, e = tx.Exec(ctx, `INSERT INTO user_roles(user_id,role_code) VALUES($1,'technician')`, id); e != nil {
-			return e
-		}
-		_, e = tx.Exec(ctx, `INSERT INTO technicians(user_id,national_id,province,city,address,status) VALUES($1,$2,$3,$4,$5,'approved')`, id, in.NationalID, in.Province, in.City, in.Address)
-		return e
-	})
+	id, err := m.insertTechnician(r.Context(), techIn{FullName: in.FullName, Phone: httpx.Phone(in.Phone), Username: in.Username, Password: in.Password,
+		NationalID: in.NationalID, Province: in.Province, City: in.City, Address: in.Address})
 	if err != nil {
 		return err
 	}

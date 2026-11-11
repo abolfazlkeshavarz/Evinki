@@ -163,3 +163,13 @@ export async function download(path: string, filename: string) {
   a.click()
   setTimeout(() => URL.revokeObjectURL(url), 5000)
 }
+
+/** POST a file as multipart form data (field "file") and return the JSON answer. */
+export async function postFile<T = any>(path: string, file: File): Promise<T> {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await raw('POST', path, fd)
+  const body = await res.json().catch(() => null)
+  if (!res.ok) throw new ApiError(res.status, 'upload', body?.error?.message ?? 'بارگذاری ناموفق بود')
+  return body
+}

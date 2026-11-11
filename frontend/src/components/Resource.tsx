@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { ActionButton, Card, Col, DataTable, Empty, ErrorBox, Field, ImageUpload, JalaliInput, Loading, Modal, MoneyInput, NumInput, PageHeader, Pager, SearchBox } from './ui'
+import { CodeFormulaBuilder } from './CodeFormula'
 import { del, patch, post } from '../lib/api'
 import { qs, useGet, useInvalidate } from '../lib/hooks'
 import { useCan } from '../lib/auth'
@@ -8,7 +9,7 @@ import { useCan } from '../lib/auth'
 export type FieldDef = {
   key: string
   label: string
-  type?: 'text' | 'textarea' | 'int' | 'money' | 'bool' | 'select' | 'jdate' | 'image' | 'images' | 'kv' | 'time' | 'password'
+  type?: 'text' | 'textarea' | 'int' | 'money' | 'bool' | 'select' | 'jdate' | 'image' | 'images' | 'kv' | 'time' | 'password' | 'formula'
   options?: { value: string | number; label: string }[]
   hint?: string
   half?: boolean
@@ -53,6 +54,8 @@ export function FieldInput({ f, value, onChange }: { f: FieldDef; value: any; on
         </div>
       )
     }
+    case 'formula':
+      return <CodeFormulaBuilder value={value} onChange={onChange} />
     case 'time':
       return <input className="input num" dir="ltr" type="time" value={value ?? ''} onChange={(e) => onChange(e.target.value)} />
     case 'password':

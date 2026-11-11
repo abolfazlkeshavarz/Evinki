@@ -332,6 +332,8 @@ func main() {
 	_, csvRaw := rawGet("/hr/reports/range.csv?detail=1", admin)
 	check("daily detail CSV export", strings.Contains(string(csvRaw), "E"+sfx), string(csvRaw))
 
+	guaranteeFormulaChecks(admin, sfx)
+
 	fmt.Println("\n[access control & audit]")
 	code, _, _ = call("GET", "/admin/users", tech, nil)
 	check("technician cannot list users", code == 403, code)

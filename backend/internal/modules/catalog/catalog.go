@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/evinki/platform/internal/app"
+	"github.com/evinki/platform/internal/modules/warranty"
 	"github.com/evinki/platform/internal/platform/auth"
 	"github.com/evinki/platform/internal/platform/crud"
 	"github.com/evinki/platform/internal/platform/db"
@@ -53,8 +54,24 @@ func Mount(r chi.Router, d *app.Deps) {
 			"summary": crud.Text, "description": crud.Text, "specs": crud.JSON, "images": crud.JSON, "price": crud.Int,
 			"compare_price": crud.Int, "price_on_request": crud.Bool, "stock_qty": crud.Int, "track_stock": crud.Bool,
 			"is_published": crud.Bool, "is_active": crud.Bool, "guarantee_months": crud.Int, "golden_months": crud.Int,
-			"code_format": crud.Text, "code_prefix": crud.Text, "code_pattern": crud.Text, "sepidar_code": crud.Text},
+			"code_format": crud.Text, "code_prefix": crud.Text, "code_pattern": crud.Text, "sepidar_code": crud.Text,
+			"code_formula": crud.JSON, "warranty_basis": crud.Text},
 		Required: []string{"sku", "slug", "name"}, Search: []string{"name", "sku", "name_en"},
+		Check: func(_ *http.Request, _ bool, b crud.Body) error {
+			if raw, ok := b["code_formula"]; ok {
+				var f warranty.Formula
+				if json.Unmarshal(raw, &f) != nil {
+					return httpx.BadRequest("فرمول کد نامعتبر است")
+				}
+				if len(f) > 0 {
+					if err := f.Validate(); err != nil {
+						return httpx.BadRequest(err.Error())
+					}
+					b["code_format"] = json.RawMessage(`"formula"`) // a formula is the product's code format
+				}
+			}
+			return nil
+		},
 		Filters: map[string]string{"category_id": "category_id", "published": "is_published"}}
 	products.Mount(r, "/admin/products", crud.Perms{Read: auth.PCatalogManage, Write: auth.PCatalogManage, Delete: auth.PCatalogDelete})
 
@@ -303,7 +320,7 @@ func (m *mod) lookupServices(w http.ResponseWriter, r *http.Request) error {
 
 func (m *mod) lookupProducts(w http.ResponseWriter, r *http.Request) error {
 	raw, err := db.Scalar[json.RawMessage](r.Context(), m.DB, `SELECT COALESCE(json_agg(t),'[]') FROM (
-		SELECT id,name,sku,guarantee_months,golden_months,code_format,code_prefix FROM products
+		SELECT id,name,sku,guarantee_months,golden_months,code_format,code_prefix,warranty_basis FROM products
 		WHERE deleted_at IS NULL AND is_active ORDER BY name) t`)
 	if err != nil {
 		return err

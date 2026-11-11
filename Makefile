@@ -63,6 +63,15 @@ load-images: ## on the server: load dist/evinki-images.tar.gz (FILE=... to choos
 deploy-remote: ## build here and deploy:  make deploy-remote HOST=root@server  [DIR=/opt/evinki] [DOMAIN=.. LETSENCRYPT_EMAIL=..]
 	@./scripts/deploy-remote.sh
 
+push-update: ## from your PC: build (or FILE=bundle) and upload to the running server:  make push-update URL=https://shop.evinki.com ADMIN=admin
+	@URL="$(URL)" ADMIN_USER="$(ADMIN)" ADMIN_PASS="$(PASS)" FILE="$(FILE)" ./scripts/push-update.sh
+
+install-updater: ## on the server (as root): install the service that applies updates uploaded in the admin panel
+	@./scripts/install-updater.sh
+
+updater-once: ## on the server: apply a pending uploaded update now (the service does this automatically)
+	@./scripts/updater.sh --once
+
 rollback-remote: ## go back to the previous version on the server:  make rollback-remote HOST=root@server
 	@./scripts/deploy-remote.sh --rollback
 
@@ -148,4 +157,4 @@ test: ## unit tests + type check
 	cd backend && go vet ./... && go test ./...
 	cd frontend && npm run typecheck
 
-.PHONY: help env secrets bootstrap ssl deploy-check up up-prebuilt down restart ps logs health deploy-health update images-bundle images load-images deploy-remote rollback-remote add-domain remove-domain change-domain backup backup-remote-setup restore export migrate-import shell-db ctl create-admin reset-password admin-password seed-catalog seed-demo demo stats import-warehouse import-guarantee import-attendance migrate-attendance smoke dev-db dev-api dev-web test
+.PHONY: push-update install-updater updater-once help env secrets bootstrap ssl deploy-check up up-prebuilt down restart ps logs health deploy-health update images-bundle images load-images deploy-remote rollback-remote add-domain remove-domain change-domain backup backup-remote-setup restore export migrate-import shell-db ctl create-admin reset-password admin-password seed-catalog seed-demo demo stats import-warehouse import-guarantee import-attendance migrate-attendance smoke dev-db dev-api dev-web test

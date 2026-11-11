@@ -22,6 +22,7 @@ import (
 	"github.com/evinki/platform/internal/bootstrap"
 	"github.com/evinki/platform/internal/config"
 	"github.com/evinki/platform/internal/legacy"
+	"github.com/evinki/platform/internal/modules/warranty"
 	"github.com/evinki/platform/internal/platform/audit"
 	"github.com/evinki/platform/internal/platform/auth"
 	"github.com/evinki/platform/internal/platform/db"
@@ -156,6 +157,11 @@ func run(cmd string, args []string) error {
 		if err != nil {
 			return err
 		}
+		if kind == "guarantee" && !*dry {
+			if n, e := warranty.BackfillManufacture(ctx, d.DB); e == nil {
+				im.Stats["guarantees: manufacture date read from code"] = n
+			}
+		}
 		fmt.Println("\nimported:")
 		for k, v := range im.Stats {
 			fmt.Printf("  %-45s %d\n", k, v)
@@ -164,6 +170,11 @@ func run(cmd string, args []string) error {
 			fmt.Println("\n(dry run: nothing was saved)")
 		}
 		return nil
+
+	case "backfill-manufacture":
+		n, err := warranty.BackfillManufacture(ctx, d.DB)
+		fmt.Printf("manufacture date filled for %d guarantees\n", n)
+		return err
 
 	case "stats":
 		for _, t := range []string{"users", "products", "parts", "customers", "guarantees", "repairs", "part_requests", "shipments", "orders", "stock_documents", "employees", "attendance_records", "surveys"} {

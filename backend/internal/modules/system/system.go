@@ -29,6 +29,8 @@ func Mount(r chi.Router, d *app.Deps) {
 		r.Delete("/admin/sms/templates/{key}", httpx.H(m.deleteTemplate))
 		r.Post("/admin/sms/test", httpx.H(m.testSMS))
 		r.Get("/admin/sms/outbox", httpx.H(m.outbox))
+		r.Get("/admin/system/update", httpx.H(m.updateStatus))
+		r.Put("/admin/system/update", httpx.H(m.uploadUpdate))
 	})
 	// The management app's home screen: one call, everything that needs attention.
 	r.With(auth.Require(auth.PReports)).Get("/manager/overview", httpx.H(m.overview))

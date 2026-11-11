@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { GlobalSearch } from './components/GlobalSearch'
 import {
   Activity, BadgeCheck, BarChart3, Boxes, ClipboardList, Cog, FileText, Home, Layers, LogOut, Menu, Moon, Package, ScanLine, Search,
-  ShieldCheck, ShoppingBag, ShoppingCart, Star, Sun, Tag, Truck, User, Users, Wallet, Warehouse, Wrench, X, Bell, Clock, Calendar, Fingerprint, Store, ListChecks, Settings2, History, PackageOpen,
+  ShieldCheck, ShoppingBag, ShoppingCart, Star, Sun, Tag, Truck, User, Users, Wallet, Warehouse, Wrench, X, Bell, Clock, Calendar, Fingerprint, Store, ListChecks, Settings2, History, PackageOpen, Trash2,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { homeFor, useCan, useUser } from './lib/auth'
@@ -67,6 +68,7 @@ const sections: { title: string; items: NavItem[] }[] = [
   { title: 'گارانتی', items: [
     { to: '/admin/guarantees', label: 'گارانتی‌ها', icon: BadgeCheck, perms: ['warranty.read'] },
     { to: '/admin/customers', label: 'مشتریان', icon: Users, perms: ['warranty.read', 'service.read'] },
+    { to: '/admin/trash', label: 'سطل بازیافت', icon: Trash2, perms: ['warranty.delete'] },
   ] },
   { title: 'خدمات پس از فروش', items: [
     { to: '/admin/service', label: 'پیگیری پرونده‌ها', icon: Wrench, perms: ['service.read'] },
@@ -98,6 +100,7 @@ const sections: { title: string; items: NavItem[] }[] = [
     { to: '/admin/roles', label: 'نقش‌ها و دسترسی', icon: ShieldCheck, perms: ['roles.manage'] },
     { to: '/admin/sms', label: 'الگوهای پیامک', icon: Bell, perms: ['settings.manage'] },
     { to: '/admin/settings', label: 'تنظیمات', icon: Settings2, perms: ['settings.manage'] },
+    { to: '/admin/system-update', label: 'به‌روزرسانی سیستم', icon: PackageOpen, perms: ['settings.manage'] },
     { to: '/admin/audit', label: 'گزارش ممیزی', icon: History, perms: ['audit.read'] },
   ] },
 ]
@@ -144,6 +147,7 @@ export function AdminLayout() {
       <div className="min-w-0">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-surface/90 px-4 backdrop-blur">
           <button className="rounded-lg p-2 md:hidden" onClick={() => setOpen(true)} aria-label="منو"><Menu className="h-5 w-5" /></button>
+          <GlobalSearch />
           <div className="mr-auto flex items-center gap-1">
             <ThemeToggle />
             <span className="relative rounded-lg p-2 text-soft" aria-label="اعلان‌ها"><Bell className="h-5 w-5" />{!!notes.data?.unread && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-bad" />}</span>

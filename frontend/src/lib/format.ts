@@ -16,9 +16,10 @@ export function parseMoney(s: string): number {
   return Number(latin(s).replace(/[^\d]/g, '')) || 0
 }
 
-const jf = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit' })
-const jfLong = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long', day: 'numeric' })
-const jfTime = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+const TZ = 'Asia/Tehran'
+const jf = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: TZ })
+const jfLong = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: 'long', day: 'numeric', timeZone: TZ })
+const jfTime = new Intl.DateTimeFormat('fa-IR-u-ca-persian', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: TZ })
 const parts = new Intl.DateTimeFormat('en-u-ca-persian-nu-latn', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'Asia/Tehran' })
 
 function asDate(v: string | Date | null | undefined): Date | null {
@@ -69,7 +70,9 @@ export function isoToJalaliInput(iso?: string | null): string {
   const p = jalaliParts(d)
   return `${p.y}/${String(p.m).padStart(2, '0')}/${String(p.d).padStart(2, '0')}`
 }
-export const todayISO = () => new Date().toISOString().slice(0, 10)
+// today in Tehran (toISOString() would still say yesterday between midnight and 03:30)
+const tehranDay = new Intl.DateTimeFormat('en-CA', { timeZone: TZ })
+export const todayISO = () => tehranDay.format(new Date())
 export const addMonthsISO = (iso: string, months: number) => {
   const d = new Date(iso + 'T12:00:00Z')
   d.setUTCMonth(d.getUTCMonth() + months)
@@ -95,3 +98,12 @@ export function minutes(m: number): string {
 
 /** Persian digits for text that is not a plain number (times, dates, codes with leading zeros). */
 export const faDigits = (s: string | number | null | undefined) => String(s ?? '').replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d])
+
+/** ISO date + n Solar Hijri months (day kept, clamped to the month length), the same rule the server uses for guarantees. */
+export function addJalaliMonths(iso: string, n: number): string {
+  const p = jalaliParts(new Date(iso + 'T12:00:00Z'))
+  const t = p.y * 12 + (p.m - 1) + n
+  const y = Math.floor(t / 12), m = (t % 12) + 1
+  for (let d = p.d; d >= 1; d--) { const r = jalaliToISO(y, m, d); if (r) return r }
+  return iso
+}

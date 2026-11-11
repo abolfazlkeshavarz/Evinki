@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { ActionButton, Badge, Card, DataTable, Empty, ErrorBox, Field, KV, Loading, Modal, MoneyInput, NumInput, PageHeader, SearchBox, StatusBadge, Tabs } from '../../components/ui'
-import { patch, post } from '../../lib/api'
+import { download, patch, post, postFile } from '../../lib/api'
 import { useCan } from '../../lib/auth'
 import { ago, date, dateTime, fa, toman } from '../../lib/format'
 import { qs, useGet, useInvalidate } from '../../lib/hooks'
@@ -211,13 +211,20 @@ export function Technicians() {
   const [status, setStatus] = useState('')
   const [q, setQ] = useState('')
   const [add, setAdd] = useState<any>(null)
+  const [imp, setImp] = useState<any>(null)
   const nav = useNavigate()
   const can = useCan()
   const inv = useInvalidate()
   const d = useGet<any[]>('/admin/technicians' + qs({ status, q }))
   return (
     <div>
-      <PageHeader title="تکنسین‌ها" actions={can('service.technicians') && <button className="btn-primary" onClick={() => setAdd({ full_name: '', phone: '', password: '', city: '', province: '' })}><Plus className="h-4 w-4" />تکنسین جدید</button>} />
+      <PageHeader title="تکنسین‌ها" actions={can('service.technicians') && <><button className="btn-ghost" onClick={() => setImp({ result: null })}>ورود گروهی (اکسل)</button><button className="btn-primary" onClick={() => setAdd({ full_name: '', phone: '', password: '', city: '', province: '' })}><Plus className="h-4 w-4" />تکنسین جدید</button></>} />
+      <Modal open={!!imp} onClose={() => setImp(null)} title="ورود گروهی تکنسین‌ها">
+        <p className="mb-3 text-sm leading-7 text-soft">فایل اکسل (.xlsx) یا CSV با ستون‌های «نام و نام خانوادگی، نام کاربری، رمز عبور، موبایل، کد ملی، استان، شهر، آدرس» بارگذاری کنید. هر سطر جداگانه بررسی می‌شود و سطر نادرست مانع بقیه نیست. نام کاربری تکراری رد می‌شود.</p>
+        <div className="flex flex-wrap items-center gap-2"><button className="btn-ghost btn-sm" onClick={() => download('/admin/technicians-import/template', 'technicians-template.csv')}>دانلود فایل نمونه</button>
+          <label className="btn-primary btn-sm cursor-pointer">انتخاب فایل و ورود<input type="file" accept=".xlsx,.csv" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; try { setImp({ result: await postFile('/admin/technicians-import', f) }); inv('/admin/technicians') } catch (err: any) { setImp({ result: { error: err.message } }) } }} /></label></div>
+        {imp?.result && (imp.result.error ? <p className="mt-3 rounded-lg bg-bad/10 p-3 text-sm text-bad">{imp.result.error}</p> : <div className="mt-3 space-y-2 text-sm"><p className="rounded-lg bg-ok/10 p-3 text-ok">{fa(imp.result.created)} تکنسین ساخته شد از {fa(imp.result.total)} سطر؛ {fa(imp.result.skipped)} سطر به‌خاطر نام کاربری تکراری رد شد.</p>{imp.result.errors.map((x: any) => <p key={x.row} className="rounded-lg bg-bad/10 p-2 text-bad">سطر {fa(x.row)}: {x.message}</p>)}</div>)}
+      </Modal>
       <Tabs value={status} onChange={setStatus} items={[{ key: '', label: 'همه' }, { key: 'pending', label: 'منتظر تایید' }, { key: 'approved', label: 'فعال' }, { key: 'rejected', label: 'رد شده' }]} />
       <Card>
         <div className="border-b border-line p-3"><SearchBox value={q} onChange={setQ} placeholder="نام، موبایل یا شهر" /></div>

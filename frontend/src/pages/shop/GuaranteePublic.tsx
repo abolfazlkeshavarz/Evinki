@@ -33,7 +33,7 @@ export function GuaranteePublic() {
           {res?.found && (
             <div>
               <div className="mb-3 flex items-center gap-2"><CheckCircle2 className="h-6 w-6 text-ok" /><span className="font-bold">گارانتی ثبت شده است</span><StatusBadge map={guaranteeStatus} value={res.status} />{res.tier === 'golden' && <StatusBadge map={tierLabel} value="golden" />}</div>
-              <KV k="محصول" v={res.product_name} /><KV k="دارنده" v={res.owner} /><KV k="تاریخ خرید" v={date(res.purchase_date)} /><KV k="پایان گارانتی" v={date(res.expiry_date)} />
+              <KV k="محصول" v={res.product_name} /><KV k="دارنده" v={res.owner} />{res.manufacture_date && <KV k="تاریخ تولید" v={date(res.manufacture_date)} />}<KV k="تاریخ خرید" v={date(res.purchase_date)} /><KV k="پایان گارانتی" v={date(res.expiry_date)} />
               <KV k="روز باقی‌مانده" v={res.days_remaining >= 0 ? fa(res.days_remaining) + ' روز' : 'منقضی شده'} />
             </div>
           )}
@@ -52,9 +52,9 @@ function Register({ initialCode }: { initialCode: string }) {
   useEffect(() => {
     setChk(null)
     if (!f.product_id || f.code.length < 4) return
-    const t = setTimeout(async () => { try { setChk(await post('/public/guarantees/validate', { product_id: f.product_id, code: f.code })) } catch { /* ignore */ } }, 400)
+    const t = setTimeout(async () => { try { setChk(await post('/public/guarantees/validate', { product_id: f.product_id, code: f.code, purchase_date: f.purchase_date })) } catch { /* ignore */ } }, 400)
     return () => clearTimeout(t)
-  }, [f.code, f.product_id])
+  }, [f.code, f.product_id, f.purchase_date])
   if (done) return <Card className="p-8 text-center"><CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-ok" /><h2 className="text-lg font-bold">گارانتی شما ثبت شد</h2><p className="mt-2 text-sm text-soft">پس از بررسی، با پیامک به شما اطلاع می‌دهیم.</p></Card>
   return (
     <Card className="space-y-4 p-5">
@@ -64,7 +64,7 @@ function Register({ initialCode }: { initialCode: string }) {
         </select>
       </Field>
       <Field label="کد گارانتی"><input className="input" dir="ltr" value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} /></Field>
-      {chk && <p className={`rounded-lg p-2.5 text-sm ${chk.message_level === 'success' ? 'bg-ok/10 text-ok' : chk.message_level === 'warning' ? 'bg-warn/15 text-warn' : 'bg-bad/10 text-bad'}`}>{chk.message}</p>}
+      {chk && <p className={`rounded-lg p-2.5 text-sm ${chk.message_level === 'success' ? 'bg-ok/10 text-ok' : chk.message_level === 'warning' ? 'bg-warn/15 text-warn' : 'bg-bad/10 text-bad'}`}>{chk.message}{chk.expiry_date && chk.can_register && <span className="mt-1 block text-xs text-ink">پایان گارانتی شما: <b>{date(chk.expiry_date)}</b></span>}</p>}
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="تاریخ خرید (شمسی)"><JalaliInput value={f.purchase_date} onChange={(v) => setF({ ...f, purchase_date: v })} /></Field>
         <Field label="نام و نام خانوادگی"><input className="input" value={f.full_name} onChange={(e) => setF({ ...f, full_name: e.target.value })} /></Field>

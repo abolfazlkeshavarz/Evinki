@@ -11,7 +11,12 @@ fi
 [[ -n "$BUNDLE" && -f "$BUNDLE" ]] || die "image bundle not found. Build it on your own machine (make images-bundle) and scp it here."
 
 say "Loading images from ${BUNDLE}"
-gunzip -c "$BUNDLE" | "$DOCKER" load
+LOADED="$(gunzip -c "$BUNDLE" | "$DOCKER" load 2>&1)" || { echo "$LOADED" >&2; die "docker could not read ${BUNDLE} - is it the file made by 'make images-bundle'?"; }
+echo "$LOADED"
+# a garbage file must never count as an update just because older images with the same names exist
+for img in evinki-api evinki-web; do
+  grep -q "Loaded image: ${img}:" <<<"$LOADED" || die "the bundle does not contain ${img}. Build it with: make images-bundle"
+done
 
 host_arch="$("$DOCKER" info --format '{{.Architecture}}' 2>/dev/null || uname -m)"
 case "$host_arch" in x86_64|amd64) host_arch=amd64 ;; aarch64|arm64) host_arch=arm64 ;; esac
